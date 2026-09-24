@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;0,800&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:'Nunito',system-ui,sans-serif;background:#F6ECDF;color:#3F362E;-webkit-font-smoothing:antialiased}
+  a{text-decoration:none;color:inherit}
+  ::-webkit-scrollbar{width:10px}
+  ::-webkit-scrollbar-thumb{background:#E4D6C4;border-radius:8px;border:3px solid transparent;background-clip:content-box}
+</style>
+</helmet>
+
+<div style="display:flex;min-height:100vh;background:#F6ECDF">
+  <aside style="width:248px;flex:none;background:#FFFDF9;border-right:1px solid #ECE0D0;display:flex;flex-direction:column;padding:24px 16px;position:sticky;top:0;height:100vh">
+    <a href="index.dc.html" style="display:flex;align-items:center;gap:11px;padding:4px 8px 22px">
+      <div style="width:38px;height:38px;border-radius:12px;background:linear-gradient(155deg,#F8C3A8,#F2937A);display:flex;align-items:center;justify-content:center;flex:none"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></div>
+      <div><div style="font-family:'Fredoka';font-weight:600;font-size:17px;color:#3F362E;line-height:1">OpenDayCare</div><div style="font-size:11.5px;color:#A89A8B;margin-top:2px">Sala Soles</div></div>
+    </a>
+    <a href="crear-publicacion.dc.html" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px;border-radius:14px;background:linear-gradient(180deg,#F4977E,#EE8164);color:#fff;font-weight:800;font-size:14.5px;box-shadow:0 8px 18px -8px rgba(238,129,100,.75);margin-bottom:18px"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Nueva publicación</a>
+    <nav style="display:flex;flex-direction:column;gap:4px;flex:1">
+      <a href="feed.dc.html" style="display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;background:transparent;color:#6E6359;font-weight:600;font-size:14.5px"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Feed</a>
+      <a href="ninos.dc.html" style="display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;background:transparent;color:#6E6359;font-weight:600;font-size:14.5px"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="3"/><circle cx="17" cy="9" r="2.4"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 20a5 5 0 0 1 5.5-4.9"/></svg>Niños</a>
+      <a href="avisos.dc.html" style="display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;background:transparent;color:#6E6359;font-weight:600;font-size:14.5px"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg>Avisos</a>
+      <a href="mi-cuenta.dc.html" style="display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;background:#FBE3D8;color:#D9583C;font-weight:800;font-size:14.5px"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Mi cuenta</a>
+    </nav>
+    <div style="border-top:1px solid #ECE0D0;padding-top:14px;margin-top:10px"><div style="display:flex;align-items:center;gap:11px;padding:6px 8px">
+      <div style="width:38px;height:38px;border-radius:50%;background:#F2937A;color:#fff;font-family:'Fredoka';font-weight:600;font-size:16px;display:flex;align-items:center;justify-content:center;flex:none">C</div>
+      <div style="flex:1;min-width:0"><div style="font-weight:800;font-size:14px;color:#3F362E">Caro Giménez</div><div style="font-size:12px;color:#A89A8B">Maestra · Soles</div></div>
+      <a href="login.dc.html" title="Cerrar sesión" style="flex:none;width:32px;height:32px;border-radius:10px;background:#F6ECDF;color:#94887B;display:flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg></a>
+    </div></div>
+  </aside>
+
+  <main style="flex:1;min-width:0;height:100vh;overflow-y:auto">
+    <div style="max-width:680px;width:100%;margin:0 auto;padding:34px 40px 80px">
+      <div style="margin-bottom:22px"><div style="font-size:12.5px;font-weight:800;letter-spacing:.8px;color:#D9583C;margin-bottom:4px">AJUSTES</div><h1 style="font-family:'Fredoka';font-weight:600;font-size:30px;margin:0;color:#3F362E">Mi cuenta</h1></div>
+      <div style="display:flex;align-items:center;gap:18px;background:#FFFDF9;border:1px solid #ECE0D0;border-radius:18px;padding:20px 22px;margin-bottom:18px">
+        <div style="width:64px;height:64px;border-radius:50%;background:#F2937A;color:#fff;font-family:'Fredoka';font-weight:600;font-size:26px;display:flex;align-items:center;justify-content:center;flex:none">C</div>
+        <div style="flex:1"><div style="font-family:'Fredoka';font-weight:600;font-size:20px;color:#3F362E">Caro Giménez</div><div style="font-size:14px;color:#94887B">caro@opendaycare.com</div><div style="font-size:13px;color:#A89A8B;margin-top:2px">Maestra · Sala Soles</div></div>
+        <button style="border:1.5px solid #ECE0D0;background:#fff;color:#6E6359;font-weight:700;font-size:14px;padding:9px 16px;border-radius:12px;cursor:pointer;font-family:inherit">Editar</button>
+      </div>
+      <div style="background:#FFFDF9;border:1px solid #ECE0D0;border-radius:18px;padding:18px 22px;margin-bottom:18px">
+        <div style="font-size:12.5px;font-weight:800;letter-spacing:.8px;color:#8A7C6D;margin-bottom:14px">NOTIFICACIONES</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #F0E6D8"><span style="font-size:15px;color:#4A4038">Nuevos comentarios de familias</span><span style="width:42px;height:24px;border-radius:999px;background:#5FB97E;position:relative;flex:none"><span style="position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;top:3px;right:3px"></span></span></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0"><span style="font-size:15px;color:#4A4038">Recordatorio de resumen (17:00)</span><span style="width:42px;height:24px;border-radius:999px;background:#5FB97E;position:relative;flex:none"><span style="position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;top:3px;right:3px"></span></span></div>
+      </div>
+      <div style="background:#FFFDF9;border:1px solid #ECE0D0;border-radius:18px;overflow:hidden;margin-bottom:18px">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 22px;border-bottom:1px solid #F0E6D8"><span style="font-size:15px;color:#4A4038;font-weight:600">Cambiar contraseña</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#CBB89F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 22px"><span style="font-size:15px;color:#4A4038;font-weight:600">Ayuda y soporte</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#CBB89F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>
+      </div>
+      <a href="login.dc.html" style="display:block;text-align:center;width:100%;padding:14px;border-radius:14px;border:1.5px solid #F2C4B6;background:#FBEAE3;color:#D9583C;font-weight:800;font-size:15px">Cerrar sesión</a>
+    </div>
+  </main>
+</div>
+
+<template id="__bundler_thumbnail" data-bg-color="#F6ECDF">
+  <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg"><rect width="1200" height="800" fill="#F6ECDF"/><rect x="180" y="180" width="840" height="130" rx="24" fill="#fff" stroke="#ECE0D0" stroke-width="4"/><circle cx="270" cy="245" r="42" fill="#F2937A"/><rect x="180" y="350" width="840" height="180" rx="24" fill="#fff" stroke="#ECE0D0" stroke-width="4"/></svg>
+</template>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:&quot;100%&quot;,&quot;height&quot;:&quot;100%&quot;}}"></script>
+</body>
+</html>

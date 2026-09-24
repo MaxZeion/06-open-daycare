@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;0,800&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:'Nunito',system-ui,sans-serif;background:#F6ECDF;color:#3F362E;-webkit-font-smoothing:antialiased}
+  a{text-decoration:none;color:inherit}
+  input,textarea{font-family:inherit}
+  input:focus,textarea:focus{outline:none}
+  ::placeholder{color:#B6A99B}
+</style>
+</helmet>
+
+<div style="min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:40px 24px">
+  <div style="width:100%;max-width:520px;background:#FBF4EC;border:1px solid #ECE0D0;border-radius:24px;box-shadow:0 20px 50px -24px rgba(63,54,46,.35);overflow:hidden">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 26px;border-bottom:1px solid #ECE0D0">
+      <a href="ninos.dc.html" style="color:#94887B;font-weight:700;font-size:15px">Cancelar</a>
+      <span style="font-family:'Fredoka';font-weight:600;font-size:18px;color:#3F362E">Agregar niño</span>
+      <a href="ninos.dc.html" style="color:#D9583C;font-weight:800;font-size:15px">Guardar</a>
+    </div>
+    <div style="padding:24px 26px">
+      <div style="font-size:12px;font-weight:800;letter-spacing:.7px;color:#94887B;margin-bottom:8px">NOMBRE COMPLETO</div>
+      <input placeholder="Ej. Martina López" style="width:100%;padding:13px 16px;border-radius:14px;border:1.5px solid #EADFD0;background:#fff;font-size:15px;color:#3F362E;margin-bottom:18px">
+      <div style="display:flex;gap:14px;margin-bottom:18px">
+        <div style="flex:1"><div style="font-size:12px;font-weight:800;letter-spacing:.7px;color:#94887B;margin-bottom:8px">FECHA DE NACIMIENTO</div><input placeholder="dd/mm/aaaa" style="width:100%;padding:13px 16px;border-radius:14px;border:1.5px solid #EADFD0;background:#fff;font-size:15px;color:#3F362E"></div>
+        <div style="flex:1"><div style="font-size:12px;font-weight:800;letter-spacing:.7px;color:#94887B;margin-bottom:8px">SALA</div><div style="display:flex;align-items:center;gap:8px;padding:13px 16px;border-radius:14px;border:1.5px solid #EADFD0;background:#fff;font-size:15px;color:#3F362E;font-weight:700">Soles<span style="flex:1"></span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B0A290" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></div></div>
+      </div>
+      <div style="font-size:12px;font-weight:800;letter-spacing:.7px;color:#94887B;margin-bottom:8px">ALERGIAS (ETIQUETAS)</div>
+      <input placeholder="Ej. Maní, Lactosa" style="width:100%;padding:13px 16px;border-radius:14px;border:1.5px solid #EADFD0;background:#fff;font-size:15px;color:#3F362E;margin-bottom:18px">
+      <div style="font-size:12px;font-weight:800;letter-spacing:.7px;color:#94887B;margin-bottom:8px">NOTAS MÉDICAS</div>
+      <textarea placeholder="Indicaciones, medicación, contactos…" style="width:100%;min-height:90px;resize:vertical;padding:13px 16px;border-radius:14px;border:1.5px solid #EADFD0;background:#fff;font-size:15px;color:#3F362E;line-height:1.5"></textarea>
+    </div>
+  </div>
+</div>
+
+<template id="__bundler_thumbnail" data-bg-color="#F6ECDF">
+  <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg"><rect width="1200" height="800" fill="#F6ECDF"/><rect x="320" y="120" width="560" height="560" rx="36" fill="#FBF4EC" stroke="#ECE0D0" stroke-width="5"/><rect x="380" y="280" width="440" height="56" rx="16" fill="#fff" stroke="#EADFD0" stroke-width="4"/><rect x="380" y="380" width="200" height="56" rx="16" fill="#fff" stroke="#EADFD0" stroke-width="4"/><rect x="620" y="380" width="200" height="56" rx="16" fill="#fff" stroke="#EADFD0" stroke-width="4"/></svg>
+</template>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:&quot;100%&quot;,&quot;height&quot;:&quot;100%&quot;}}"></script>
+</body>
+</html>
