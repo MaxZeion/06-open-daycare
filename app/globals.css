@@ -55,6 +55,10 @@
   /* CTA oscuro (Resumen del día) */
   --dark-cta: #3f362e;
 
+  /* Tarjeta de niño */
+  --kid-card-hover: #f2a78e;
+  --chevron-ink: #cbb89f;
+
   /* Avatares */
   --avatar-mateo-bg: #a9d9e8;
   --avatar-mateo-fg: #1f7a93;
@@ -136,6 +140,8 @@
   --color-alert-title: var(--alert-title);
   --color-alert-text: var(--alert-text);
   --color-dark-cta: var(--dark-cta);
+  --color-kid-card-hover: var(--kid-card-hover);
+  --color-chevron-ink: var(--chevron-ink);
 }
 
 @theme {
