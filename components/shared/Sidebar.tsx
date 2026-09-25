@@ -1,3 +1,4 @@
+import Link from "next/link";
 import {
   BellIcon,
   HomeIcon,
@@ -8,36 +9,42 @@ import {
   UsersIcon,
 } from "./icons";
 
+export type SectionId = "feed" | "kids";
+
 type NavItem = {
   label: string;
   icon: typeof HomeIcon;
-  active?: boolean;
+  href?: string;
+  section?: SectionId;
 };
 
 const NAV_ITEMS: NavItem[] = [
-  { label: "Feed", icon: HomeIcon, active: true },
-  { label: "Niños", icon: UsersIcon },
+  { label: "Feed", icon: HomeIcon, href: "/", section: "feed" },
+  { label: "Niños", icon: UsersIcon, href: "/kids", section: "kids" },
   { label: "Avisos", icon: BellIcon },
   { label: "Mi cuenta", icon: UserIcon },
 ];
 
-function NavButton({ label, icon: Icon, active = false }: NavItem) {
-  return (
-    <button
-      type="button"
-      className={
-        active
-          ? "flex items-center gap-3 rounded-xl bg-accent-soft px-3 py-[11px] text-[14.5px] font-extrabold text-accent"
-          : "flex items-center gap-3 rounded-xl px-3 py-[11px] text-[14.5px] font-semibold text-idle"
-      }
-    >
+function NavItemView({ item, active }: { item: NavItem; active: boolean }) {
+  const { label, icon: Icon, href } = item;
+  const className =
+    active
+      ? "flex items-center gap-3 rounded-xl bg-accent-soft px-3 py-[11px] text-[14.5px] font-extrabold text-accent"
+      : "flex items-center gap-3 rounded-xl px-3 py-[11px] text-[14.5px] font-semibold text-idle";
+  return href ? (
+    <Link href={href} className={className}>
+      <Icon className="h-[19px] w-[19px]" />
+      {label}
+    </Link>
+  ) : (
+    <button type="button" className={className}>
       <Icon className="h-[19px] w-[19px]" />
       {label}
     </button>
   );
 }
 
-export function Sidebar() {
+export function Sidebar({ active = "feed" }: { active?: SectionId }) {
   return (
     <aside className="sticky top-0 flex h-full w-[248px] shrink-0 flex-col border-r border-border bg-surface px-4 py-6">
       <div className="flex items-center gap-[11px] px-2 pb-[22px] pt-1">
@@ -62,7 +69,11 @@ export function Sidebar() {
 
       <nav className="flex flex-1 flex-col gap-1">
         {NAV_ITEMS.map((item) => (
-          <NavButton key={item.label} {...item} />
+          <NavItemView
+            key={item.label}
+            item={item}
+            active={item.section === active}
+          />
         ))}
       </nav>
 

@@ -3,15 +3,22 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
 import { Sidebar } from "./Sidebar";
+import type { SectionId } from "./Sidebar";
 import { MenuIcon, PlusIcon, SunIcon } from "./icons";
 
-export function AppShell({ children }: { children: ReactNode }) {
+export function AppShell({
+  children,
+  active = "feed",
+}: {
+  children: ReactNode;
+  active?: SectionId;
+}) {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   return (
     <div className="flex h-dvh">
       <div className="hidden h-full md:block">
-        <Sidebar />
+        <Sidebar active={active} />
       </div>
 
       {drawerOpen ? (
@@ -23,7 +30,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             className="absolute inset-0 bg-[rgba(63,54,46,0.35)]"
           />
           <div className="absolute inset-y-0 left-0 shadow-[0_10px_40px_rgba(120,90,60,0.35)]">
-            <Sidebar />
+            <Sidebar active={active} />
           </div>
         </div>
       ) : null}
