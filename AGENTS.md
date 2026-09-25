@@ -28,7 +28,8 @@ OpenDayCare — app de guardería. App Router en `app/` (aún es el scaffold de 
 
 - Feature importante → skill `/spec` (diseña el spec, lo guarda en `specs/NN-slug.md`).
 - Spec aprobada → skill `/spec-impl` (rama `spec-NN-slug`, pasos con revisión de diff, **nunca commitea solo**).
-- `specs/` aún no existe; el primero se crea con `/spec`.
+- Spec implementada → comando `/spec-verify [NN | slug | path]` (ej. `/spec-verify 01`), que delega en el **agente `spec-verify`** (`.opencode/agents/spec-verify.md`): clasifica cada criterio de aceptación (CLI, código, patrones Next.js vía Context7, visual vía Playwright + visión), corrige lo que falla, marca los checkboxes con evidencia y emite el veredicto (**APROBADO** / **PENDIENTE**).
+- Estado actual: `specs/01-feed-home.md` (feed home) implementado y verificado.
 
 ## MCPS
 
@@ -39,6 +40,7 @@ OpenDayCare — app de guardería. App Router en `app/` (aún es el scaffold de 
 
 - /spec para espicificar las especificaciones
 - /spec-impl para implementar las especificaciones
+- /spec-verify para verificar los acceptance criteria (delega en el agente `spec-verify`, `.opencode/agents/spec-verify.md`)
 
 ## Clean code
 

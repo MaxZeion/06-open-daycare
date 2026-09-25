@@ -94,14 +94,14 @@ components/
 
 ## Acceptance criteria
 
-- [ ] `npm run lint` y `npm run build` pasan sin errores.
-- [ ] `npm run dev` → `/` renderiza sin errores en consola.
-- [ ] Desktop (≥ 768px): layout igual a `pantallas/feed.dc.html` — sidebar crema fija de 248px (logo, "Nueva publicación", nav con Feed activo, footer "Caro Giménez · Maestra · Soles") + main centrado (max 760px) con header, caja de composición, divisor y exactamente 3 cards.
-- [ ] Fuentes visibles: Fredoka en marca/títulos, Nunito en cuerpo.
-- [ ] Las 3 cards muestran el badge correcto (LOGRO verde, ACTIVIDAD azul con placeholder de foto, ANUNCIO índigo) y el texto/hora/destinatario/likes/comentarios de la maqueta.
-- [ ] Colores coinciden con la paleta (bg `#F6ECDF`, surface `#FFFDF9`, bordes `#ECE0D0`, acentos terracota).
-- [ ] Mobile (< 768px): sidebar oculta; top bar con logo + hamburguesa que abre el drawer; "Nueva publicación" como botón flotante.
-- [ ] Nav y botones no navegan (sin 404); ningún clic rompe la página.
+- [x] `npm run lint` y `npm run build` pasan sin errores. — ok: `npm run lint` exit 0 (tras añadir `pantallas/**` a `globalIgnores` en `eslint.config.mjs`: el fallo venía de la maqueta `pantallas/support.js`, no del código de la app) y `npm run build` exit 0 (`/` prerenderizado como estático).
+- [x] `npm run dev` → `/` renderiza sin errores en consola. — ok: consola con 0 errores durante la sesión (solo info de React DevTools + HMR); `.mcp-playwright/spec-01-desktop-top.png`.
+- [x] Desktop (≥ 768px): layout igual a `pantallas/feed.dc.html` — sidebar crema fija de 248px (logo, "Nueva publicación", nav con Feed activo, footer "Caro Giménez · Maestra · Soles") + main centrado (max 760px) con header, caja de composición, divisor y exactamente 3 cards. — ok: DOM `w-[248px]` sticky, main 760px centrado (`contentLeft` 379 = centrado restando el scrollbar), 3 `article`; comparado 1:1 con la maqueta servida en :8099 (`.mcp-playwright/spec-01-mockup-feed.png` vs `spec-01-desktop-top.png`).
+- [x] Fuentes visibles: Fredoka en marca/títulos, Nunito en cuerpo. — ok: computed styles `h1 → Fredoka`, `main p → Nunito` (viales `next/font/google` en `app/layout.tsx`).
+- [x] Las 3 cards muestran el badge correcto (LOGRO verde, ACTIVIDAD azul con placeholder de foto, ANUNCIO índigo) y el texto/hora/destinatario/likes/comentarios de la maqueta. — ok: badges `#CFEBD8`/`#C7E7F1`(+foto)/`#CCD8F4`; tiempos 14:20/09:40/07:50, destinatarios y 3·1 / 5·2 / 8·0 de la maqueta (`.mcp-playwright/spec-01-desktop-cards.png`).
+- [x] Colores coinciden con la paleta (bg `#F6ECDF`, surface `#FFFDF9`, bordes `#ECE0D0`, acentos terracota). — ok: computed `body bg rgb(246,236,223)`, card `rgb(255,253,249)`, borde `rgb(236,224,208)`; tokens en `app/globals.css`.
+- [x] Mobile (< 768px): sidebar oculta; top bar con logo + hamburguesa que abre el drawer; "Nueva publicación" como botón flotante. — ok: a 390×844 sidebar `display:none`, top bar visible, drawer abre/cierra con overlay, FAB `fixed` bottom-right (`.mcp-playwright/spec-01-mobile-top.png`, `spec-01-mobile-drawer.png`).
+- [x] Nav y botones no navegan (sin 404); ningún clic rompe la página. — ok: clics en Niños, FAB, Editar, composer y logout dejan la URL en `/` (sin navegación ni 404); consola sin errores.
 
 ## Decisions
 
