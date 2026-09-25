@@ -119,16 +119,16 @@ app/
 
 ## Acceptance criteria
 
-- [ ] `npm run lint` y `npm run build` pasan sin errores.
-- [ ] `npm run dev` → `/kids` renderiza sin errores en consola.
-- [ ] Desktop `/kids` igual a `ninos.dc.html`: header "GESTIÓN/Niños" + "Agregar niño", buscador, divisor "SALA SOLES · 8 niños" y grilla 2 columnas de 8 tarjetas con avatar/nombre/edad.
-- [ ] Lado derecho de cada tarjeta correcto: MANÍ y LACTOSA → badge naranja, Valentina (sin padres) → badge rosa VINCULAR, el resto → chevron.
-- [ ] Buscador filtra en vivo por nombre (escribir "Sof" deja solo Sofía; texto vacío muestra los 8).
-- [ ] Clic en una tarjeta navega a `/kids/[id]` y la sidebar "Niños" queda activa en `/kids` y `/kids/[id]` (Feed deja de estar activo).
-- [ ] `/kids/[id]` de Mateo igual a `perfil-nino.dc.html`: "Volver a Niños", avatar 84px + "Mateo Fernández" + "3 años · Sala Soles", caja de alergias (MANÍ/inhalador), 3 filas de datos (12 mar 2022 / Soles / feb 2025), "Resumen del día", padre Lucía ACTIVA + Diego PENDIENTE + "Vincular otro padre".
-- [ ] "Volver a Niños" vuelve a `/kids`; "Agregar niño", "Editar", "Resumen del día" y "Vincular otro padre" son no-ops (no navegan, no dan 404, sin errores en consola).
-- [ ] Colores coinciden con la paleta (bg `#F6ECDF`, surface `#FFFDF9`, bordes `#ECE0D0`, acentos terracota) y fuentes Fredoka/Nunito visibles.
-- [ ] Mobile (< 768px): usa el drawer del `AppShell` (heredado) y el contenido se adapta sin romper el layout.
+- [x] `npm run lint` y `npm run build` pasan sin errores. — ok: `npm run lint` exit 0; `npm run build` exit 0 (Next 16.3.6, rutas `/` ○, `/_not-found` ○, `/kids` ○, `/kids/[id]` ƒ)
+- [x] `npm run dev` → `/kids` renderiza sin errores en consola. — ok: `http://localhost:3000/kids` 200, 0 errores en consola (`.mcp-playwright/spec-02-colors-desktop.png`)
+- [x] Desktop `/kids` igual a `ninos.dc.html`: header "GESTIÓN/Niños" + "Agregar niño", buscador, divisor "SALA SOLES · 8 niños" y grilla 2 columnas de 8 tarjetas con avatar/nombre/edad. — ok: `.mcp-playwright/spec-02-colors-desktop.png` vs maqueta `pantallas/ninos.dc.html`
+- [x] Lado derecho de cada tarjeta correcto: MANÍ y LACTOSA → badge naranja, Valentina (sin padres) → badge rosa VINCULAR, el resto → chevron. — ok: lógica en `components/kids/KidCard.tsx`; screenshot confirma MANÍ/LACTOSA naranjas, Valentina VINCULAR rosa, resto chevron
+- [x] Buscador filtra en vivo por nombre (escribir "Sof" deja solo Sofía; texto vacío muestra los 8). — ok: escribir "Sof" → solo Sofía; borrar → 8 tarjetas (verificado en vivo)
+- [x] Clic en una tarjeta navega a `/kids/[id]` y la sidebar "Niños" queda activa en `/kids` y `/kids/[id]` (Feed deja de estar activo). — ok: clic tarjeta → `/kids/[id]`; Niños `#FBE3D8`/`#D9583C` activo y Feed inactivo en `/kids` y `/kids/[id]`
+- [x] `/kids/[id]` de Mateo igual a `perfil-nino.dc.html`: "Volver a Niños", avatar 84px + "Mateo Fernández" + "3 años · Sala Soles", caja de alergias (MANÍ/inhalador), 3 filas de datos (12 mar 2022 / Soles / feb 2025), "Resumen del día", padre Lucía ACTIVA + Diego PENDIENTE + "Vincular otro padre". — ok: `.mcp-playwright/spec-02-profile-desktop.png` vs maqueta `pantallas/perfil-nino.dc.html` (0 errores)
+- [x] "Volver a Niños" vuelve a `/kids`; "Agregar niño", "Editar", "Resumen del día" y "Vincular otro padre" son no-ops (no navegan, no dan 404, sin errores en consola). — ok: Volver → `/kids`; Editar/Resumen/Vincular no navegan (URL constante, sin 404, 0 errores)
+- [x] Colores coinciden con la paleta (bg `#F6ECDF`, surface `#FFFDF9`, bordes `#ECE0D0`, acentos terracota) y fuentes Fredoka/Nunito visibles. — ok: computed styles bg `rgb(246,236,223)`, surface `rgb(255,253,249)`, borde `rgb(236,224,208)`, acento `#D9583C`; H1 Fredoka, body Nunito (`.mcp-playwright/spec-02-colors-desktop.png`)
+- [x] Mobile (< 768px): usa el drawer del `AppShell` (heredado) y el contenido se adapta sin romper el layout. — ok: 390×844 top bar + FAB visibles, drawer abre con nav, sin overflow horizontal (`scrollWidth==innerWidth`) en `/kids` y perfil (`.mcp-playwright/spec-02-mobile-kids.png`, `-mobile-drawer.png`, `-mobile-profile.png`)
 
 ## Decisions
 
