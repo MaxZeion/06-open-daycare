@@ -103,6 +103,12 @@
   --consent-bg: #fbf1d6;
   --consent-fg: #8a7234;
   --check-bg: #5fb97e;
+
+  /* Modal "Agregar niño" */
+  --modal-bg: #fbf4ec;
+  --field-bg: #ffffff;
+  --field-chevron: #b0a290;
+  --field-placeholder: #b6a99b;
 }
 
 @theme inline {
@@ -157,12 +163,17 @@
   --color-consent-bg: var(--consent-bg);
   --color-consent-fg: var(--consent-fg);
   --color-check-bg: var(--check-bg);
+  --color-modal-bg: var(--modal-bg);
+  --color-field-bg: var(--field-bg);
+  --color-field-chevron: var(--field-chevron);
+  --color-field-placeholder: var(--field-placeholder);
 }
 
 @theme {
   --shadow-card: 0 4px 16px -12px rgba(120, 90, 60, 0.5);
   --shadow-composer: 0 4px 14px -10px rgba(120, 90, 60, 0.4);
   --shadow-cta: 0 8px 18px -8px rgba(238, 129, 100, 0.75);
+  --shadow-modal: 0 20px 50px -24px rgba(63, 54, 46, 0.35);
 }
 
 @layer base {
