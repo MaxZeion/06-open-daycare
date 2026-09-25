@@ -147,6 +147,14 @@ export function ChevronRightIcon(props: IconProps) {
   );
 }
 
+export function CheckIcon(props: IconProps) {
+  return (
+    <Svg strokeWidth={3} {...props}>
+      <polyline points="20 6 9 17 4 12" />
+    </Svg>
+  );
+}
+
 export function AlertTriangleIcon(props: IconProps) {
   return (
     <Svg strokeWidth={2.2} {...props}>
