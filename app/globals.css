@@ -1,26 +1,90 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Surfaces */
+  --bg: #f6ecdf;
+  --surface: #fffdf9;
+  --border: #ece0d0;
+  --border-soft: #f0e6d8;
+  --divider: #e7dac8;
+
+  /* Brand (terracota) */
+  --brand: #f2937a;
+  --brand-soft: #f8c3a8;
+  --brand-deep: #ee8164;
+  --brand-deep-soft: #f4977e;
+
+  /* Texto */
+  --ink: #3f362e;
+  --ink-soft: #4a4038;
+  --muted: #a89a8b;
+  --muted-strong: #94887b;
+  --idle: #6e6359;
+
+  /* Acentos */
+  --accent: #d9583c;
+  --accent-soft: #fbe3d8;
+  --accent-hot: #e0654a;
+
+  /* Badges de post */
+  --badge-logro-bg: #cfebd8;
+  --badge-logro-fg: #3e9b6c;
+  --badge-actividad-bg: #c7e7f1;
+  --badge-actividad-fg: #2e89a6;
+  --badge-anuncio-bg: #ccd8f4;
+  --badge-anuncio-fg: #4e72c8;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-nunito);
+  --font-display: var(--font-fredoka);
+
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-border: var(--border);
+  --color-border-soft: var(--border-soft);
+  --color-divider: var(--divider);
+  --color-brand: var(--brand);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-deep: var(--brand-deep);
+  --color-brand-deep-soft: var(--brand-deep-soft);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-muted: var(--muted);
+  --color-muted-strong: var(--muted-strong);
+  --color-idle: var(--idle);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-hot: var(--accent-hot);
+  --color-badge-logro-bg: var(--badge-logro-bg);
+  --color-badge-logro-fg: var(--badge-logro-fg);
+  --color-badge-actividad-bg: var(--badge-actividad-bg);
+  --color-badge-actividad-fg: var(--badge-actividad-fg);
+  --color-badge-anuncio-bg: var(--badge-anuncio-bg);
+  --color-badge-anuncio-fg: var(--badge-anuncio-fg);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@theme {
+  --shadow-card: 0 4px 16px -12px rgba(120, 90, 60, 0.5);
+  --shadow-composer: 0 4px 14px -10px rgba(120, 90, 60, 0.4);
+  --shadow-cta: 0 8px 18px -8px rgba(238, 129, 100, 0.75);
+}
+
+@layer base {
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-nunito);
   }
-}
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #e4d6c4;
+    border: 3px solid transparent;
+    border-radius: 8px;
+    background-clip: content-box;
+  }
 }
