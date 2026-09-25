@@ -109,6 +109,7 @@
   --field-bg: #ffffff;
   --field-chevron: #b0a290;
   --field-placeholder: #b6a99b;
+  --field-error: #c5413a;
 }
 
 @theme inline {
@@ -167,6 +168,7 @@
   --color-field-bg: var(--field-bg);
   --color-field-chevron: var(--field-chevron);
   --color-field-placeholder: var(--field-placeholder);
+  --color-field-error: var(--field-error);
 }
 
 @theme {

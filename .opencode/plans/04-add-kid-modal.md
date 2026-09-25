@@ -16,7 +16,7 @@ SPEC 02 dejó el botón "Agregar niño" como no-op visual. Este spec lo hace rea
 - Modal sin overlay oscuro (la tarjeta flota sobre la página, tal cual el ejemplo) que se abre desde el botón "Agregar niño" de `/kids` y se cierra con "Cancelar", clic fuera o Esc.
 - Tarjeta fiel a la maqueta: header (Cancelar / "Agregar niño" / Guardar) + NOMBRE COMPLETO, fila FECHA DE NACIMIENTO + SALA, ALERGIAS (ETIQUETAS), NOTAS MÉDICAS.
 - Máscara de fecha en formato español `dd/mm/aaaa` (auto-insertión de barras, solo dígitos) para la fecha de nacimiento.
-- Validación: nombre, fecha de nacimiento y sala son **obligatorios** (fecha debe existir y no ser futura); alergias y notas médicas son **opcionales**. "Guardar" queda disabled hasta que los obligatorios son válidos.
+- Validación: nombre, fecha de nacimiento y sala son **obligatorios** (fecha debe existir y no ser futura); alergias y notas médicas son **opcionales**. "Guardar" queda siempre habilitado: al hacer clic, los obligatorios inválidos se marcan en rojo (borde + mensaje) hasta que se corrijan, y si son válidos se guarda.
 - SALA: `<select>` nativo estilizado con 4 opciones — Soles (default), Lunas, Nubes, Estrellas.
 - Guardar: construye el `Kid` (id, inicial, avatar por paleta rotativa, edad derivada de la fecha, sala, `parentsCount: 0`, alergias mapeadas, `medicalNotes`) y lo agrega a la lista **en memoria** (primero en la grilla); el contador del divisor y el buscador lo incluyen.
 - Mobile (< 768px): tarjeta a ancho completo con márgenes de 16px, centrada verticalmente, scroll interno si excede la altura.
@@ -73,6 +73,7 @@ Convenciones:
 | `--field-bg` | `#FFFFFF` | fondo de inputs/select/textarea del modal |
 | `--field-chevron` | `#B0A290` | trazo del chevron del selector de sala |
 | `--field-placeholder` | `#B6A99B` | color de placeholder de los campos |
+| `--field-error` | `#C5413A` | borde/mensaje de error de campos del modal (mismo valor que `--alert-title`, con nombre propio para no mezclar semánticas) |
 
 Se reutilizan tal cual: `--border` (`#ECE0D0`, borde de tarjeta y header), `--input-border` (`#EADFD0`, borde de campos, de SPEC 03), `--muted-strong` (`#94887B`, labels y "Cancelar"), `--ink`, `--accent` (`#D9583C`, "Guardar").
 
@@ -96,7 +97,7 @@ app/
 2. `components/shared/icons.tsx`: agrego `ChevronDownIcon` (mismo trazo de la maqueta `m6 9 6 6 6-6`, `strokeWidth` 2.2). *Funcional.*
 3. `components/kids/dateMask.ts`: `applyDateMask` (extrae dígitos, forma `dd/mm/aaaa`), `parseSpanishDate` (`Date | null`; `null` si mal formada, inexistente o futura) y `ageFromBirthDate`. *Funcional.*
 4. `components/kids/mockKids.ts`: `SALAS`, `AVATAR_PALETTE`, `buildKidId` + campo `medicalNotes?` en `Kid`. *Funcional: cambios puramente aditivos, SPEC 02 intacto.*
-5. `components/kids/AddKidModal.tsx` (client): `createPortal` a `document.body`; capa transparente a pantalla completa (clic fuera → cerrar, lock de scroll del body); tarjeta (max 520px, tokens nuevos, overflow hidden) con header y los 5 campos fieles a la maqueta; estado local de los 5 campos; máscara en el input de fecha (`inputMode="numeric"`, `maxLength=10`); "Guardar" disabled hasta nombre ≠ "" y fecha válida; listener `keydown` para Esc; al guardar, `onSave(kid)` + reset del formulario; mobile: ancho completo con márgenes 16px, `max-h` con scroll interno. *Funcional: compila (aún no usado).*
+5. `components/kids/AddKidModal.tsx` (client): `createPortal` a `document.body`; capa transparente a pantalla completa (clic fuera → cerrar, lock de scroll del body); tarjeta (max 520px, tokens nuevos, overflow hidden) con header y los 5 campos fieles a la maqueta; estado local de los 5 campos; máscara en el input de fecha (`inputMode="numeric"`, `maxLength=10`); "Guardar" siempre habilitado: al hacer clic, valida nombre/fecha y, si hay inválidos, los marca en rojo (borde `--field-error` + mensaje) hasta corregirlos; listener `keydown` para Esc; si son válidos, `onSave(kid)` + reset del formulario; mobile: ancho completo con márgenes 16px, `max-h` con scroll interno. *Funcional: compila (aún no usado).*
 6. `app/kids/page.tsx`: state `addOpen` (el botón "Agregar niño" lo abre) y `addedKids: Kid[]`; lista combinada `addedKids + KIDS` (los nuevos primero) alimenta grilla, buscador y contador del divisor; renderiza `<AddKidModal>` dentro del `AppShell`. *Funcional: flujo completo.*
 
 ## Acceptance criteria
@@ -105,7 +106,7 @@ app/
 - [ ] En `/kids`, "Agregar niño" abre el modal: tarjeta max 520px, bg `#FBF4EC`, borde `#ECE0D0`, radius 24, sombra de la maqueta, **sin overlay oscuro**; la página queda visible detrás. — verificar: screenshot `.mcp-playwright/` vs `pantallas/agregar-nino.dc.html`.
 - [ ] Modal desktop fiel a la maqueta: header (Cancelar `#94887B` 15px/700, "Agregar niño" Fredoka 18px/600, Guardar `#D9583C` 15px/800), labels 12px/800 con tracking `.7px` (`#94887B`), placeholders ("Ej. Martina López", "dd/mm/aaaa", "Ej. Maní, Lactosa", "Indicaciones, medicación, contactos…") en `#B6A99B`, inputs padding 13/16 radius 14 borde 1.5px `#EADFD0` bg `#fff`, fila fecha+sala con gap 14, select con chevron `#B0A290`, textarea 90px resizable. — verificar: screenshot vs maqueta.
 - [ ] Máscara de fecha: teclear `12032022` muestra `12/03/2022`; las letras se ignoran; backspace funciona; máximo 10 caracteres. — verificar: typing vía Playwright.
-- [ ] "Guardar" está **disabled** (atenuado) hasta que nombre ≠ vacío y la fecha es real y no futura: `31/02/2021` o `01/01/2027` lo dejan disabled; nombre + fecha válida lo habilitan. — verificar: atributo/estado por computed style.
+- [ ] Clic en "Guardar" con nombre vacío y/o fecha inválida (`31/02/2021`, `01/01/2027` o incompleta) **no agrega** nada y marca los inválidos en rojo (borde + mensaje: "Ingresá el nombre completo." / "Completá la fecha (dd/mm/aaaa)." / "Fecha no válida."); al corregirlos, la marca desaparece en vivo y un nuevo clic guarda. — verificar: Playwright.
 - [ ] SALA: `<select>` nativo con Soles (default), Lunas, Nubes, Estrellas; estilizado como la caja de la maqueta (texto 15px/700 + chevron), sin el render nativo del select. — verificar: opciones + estilo.
 - [ ] Guardar con (nombre, fecha, sala, alergias "Maní", notas) agrega la tarjeta nueva **primero** en la grilla: avatar con inicial + color de paleta, nombre, edad derivada, badge naranja MANÍ; el divisor pasa a "… 9 niños"; el buscador la encuentra; el modal se cierra y al reabrir los campos están vacíos. — verificar: Playwright.
 - [ ] Sin alergia reconocida, la tarjeta nueva muestra badge rosa VINCULAR (lógica existente de `KidCard` con `parentsCount 0`). — verificar: screenshot.
@@ -126,7 +127,7 @@ app/
 - **Sí:** `birthDate` se guarda **tal cual se tecleó** (`dd/mm/aaaa`) — decisión del usuario; consecuencia: el perfil del niño nuevo muestra la fecha en crudo (Mateo sigue en "12 mar 2022"). Se unificará cuando llegue un backend.
 - **Sí:** sin overlay oscuro — la tarjeta flota sobre la página con su propia sombra de la maqueta; la capa a pantalla completa es transparente, solo para capturar el clic fuera. Decidido por el usuario ("el mismo que en el ejemplo").
 - **Sí:** cierra con "Cancelar", clic fuera **y Esc** — confirmado por el usuario.
-- **Sí:** "Guardar" **disabled** hasta nombre ≠ vacío y fecha válida (sala trae default) — sin estados de error en rojo: la máscara y el disabled los hacen innecesarios. Decidido por el usuario.
+- **Sí:** "Guardar" **siempre habilitado**: al hacer clic valida nombre y fecha (sala trae default) y, si hay inválidos, los marca en rojo (borde + mensaje) hasta corregirlos; sin estados de error previos al primer clic. Decidido por el usuario (revirtió la versión anterior de disabled sin errores).
 - **Sí:** salas nuevas **Lunas, Nubes, Estrellas** — tema celeste que continúa a Soles. Decidido por el usuario.
 - **Sí:** alergias = texto libre → `allergyNotes`; "maní"/"lactosa" (case/acent-insensitive) activan el badge naranja; el resto no. Decidido por el usuario.
 - **Sí:** NOTAS MÉDICAS se guarda en un nuevo campo aditivo `medicalNotes?` de `Kid` (el perfil no la renderiza aún) — no se pierde el dato sin tocar la renderización de SPEC 02.

@@ -21,7 +21,7 @@ type AddKidModalProps = {
 };
 
 const FIELD_CLASSES =
-  "w-full rounded-[14px] border-[1.5px] border-input-border bg-field-bg px-4 py-[13px] text-[15px] text-ink outline-none placeholder:text-field-placeholder";
+  "w-full rounded-[14px] border-[1.5px] bg-field-bg px-4 py-[13px] text-[15px] text-ink outline-none placeholder:text-field-placeholder";
 
 function mapAllergy(raw: string): AllergyTag | undefined {
   const normalized = raw
@@ -78,6 +78,7 @@ export function AddKidModal({ open, addedCount, onClose, onSave }: AddKidModalPr
   const [sala, setSala] = useState<Sala>("Soles");
   const [allergies, setAllergies] = useState("");
   const [medicalNotes, setMedicalNotes] = useState("");
+  const [attempted, setAttempted] = useState(false);
 
   useEffect(() => {
     if (!open) {
@@ -109,7 +110,10 @@ export function AddKidModal({ open, addedCount, onClose, onSave }: AddKidModalPr
     return null;
   }
 
-  const canSave = name.trim() !== "" && parseSpanishDate(birthDate) !== null;
+  const nameInvalid = name.trim() === "";
+  const dateInvalid = parseSpanishDate(birthDate) === null;
+  const showNameError = attempted && nameInvalid;
+  const showDateError = attempted && dateInvalid;
 
   function resetFields() {
     setName("");
@@ -117,10 +121,12 @@ export function AddKidModal({ open, addedCount, onClose, onSave }: AddKidModalPr
     setSala("Soles");
     setAllergies("");
     setMedicalNotes("");
+    setAttempted(false);
   }
 
   function handleSave() {
-    if (!canSave) {
+    if (nameInvalid || dateInvalid) {
+      setAttempted(true);
       return;
     }
     onSave(
@@ -154,24 +160,33 @@ export function AddKidModal({ open, addedCount, onClose, onSave }: AddKidModalPr
           </span>
           <button
             type="button"
-            disabled={!canSave}
             onClick={handleSave}
-            className="text-[15px] font-extrabold text-accent disabled:cursor-not-allowed disabled:opacity-40"
+            className="text-[15px] font-extrabold text-accent"
           >
             Guardar
           </button>
         </header>
 
         <div className="overflow-y-auto px-[26px] py-6">
-          <div className="mb-2 text-xs font-extrabold tracking-[0.7px] text-muted-strong">
-            NOMBRE COMPLETO
+          <div className="mb-[18px]">
+            <div className="mb-2 text-xs font-extrabold tracking-[0.7px] text-muted-strong">
+              NOMBRE COMPLETO
+            </div>
+            <input
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              placeholder="Ej. Martina López"
+              aria-invalid={showNameError}
+              className={`${FIELD_CLASSES} ${
+                showNameError ? "border-field-error" : "border-input-border"
+              }`}
+            />
+            {showNameError ? (
+              <p className="mt-2 text-xs font-bold text-field-error">
+                Ingresá el nombre completo.
+              </p>
+            ) : null}
           </div>
-          <input
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            placeholder="Ej. Martina López"
-            className={`${FIELD_CLASSES} mb-[18px]`}
-          />
 
           <div className="mb-[18px] flex gap-[14px]">
             <div className="flex-1">
@@ -184,8 +199,18 @@ export function AddKidModal({ open, addedCount, onClose, onSave }: AddKidModalPr
                 placeholder="dd/mm/aaaa"
                 inputMode="numeric"
                 maxLength={10}
-                className={FIELD_CLASSES}
+                aria-invalid={showDateError}
+                className={`${FIELD_CLASSES} ${
+                  showDateError ? "border-field-error" : "border-input-border"
+                }`}
               />
+              {showDateError ? (
+                <p className="mt-2 text-xs font-bold text-field-error">
+                  {birthDate.length < 10
+                    ? "Completá la fecha (dd/mm/aaaa)."
+                    : "Fecha no válida."}
+                </p>
+              ) : null}
             </div>
             <div className="flex-1">
               <div className="mb-2 text-xs font-extrabold tracking-[0.7px] text-muted-strong">
@@ -208,15 +233,17 @@ export function AddKidModal({ open, addedCount, onClose, onSave }: AddKidModalPr
             </div>
           </div>
 
-          <div className="mb-2 text-xs font-extrabold tracking-[0.7px] text-muted-strong">
-            ALERGIAS (ETIQUETAS)
+          <div className="mb-[18px]">
+            <div className="mb-2 text-xs font-extrabold tracking-[0.7px] text-muted-strong">
+              ALERGIAS (ETIQUETAS)
+            </div>
+            <input
+              value={allergies}
+              onChange={(event) => setAllergies(event.target.value)}
+              placeholder="Ej. Maní, Lactosa"
+              className={`${FIELD_CLASSES} border-input-border`}
+            />
           </div>
-          <input
-            value={allergies}
-            onChange={(event) => setAllergies(event.target.value)}
-            placeholder="Ej. Maní, Lactosa"
-            className={`${FIELD_CLASSES} mb-[18px]`}
-          />
 
           <div className="mb-2 text-xs font-extrabold tracking-[0.7px] text-muted-strong">
             NOTAS MÉDICAS
@@ -225,7 +252,7 @@ export function AddKidModal({ open, addedCount, onClose, onSave }: AddKidModalPr
             value={medicalNotes}
             onChange={(event) => setMedicalNotes(event.target.value)}
             placeholder="Indicaciones, medicación, contactos…"
-            className={`${FIELD_CLASSES} min-h-[90px] resize-y leading-[1.5]`}
+            className={`${FIELD_CLASSES} min-h-[90px] resize-y leading-[1.5] border-input-border`}
           />
         </div>
       </div>
