@@ -47,6 +47,9 @@
 
   /* Acento oscuro (Editar) */
   --accent-deep: #c5503a;
+
+  /* Etiqueta de divisor */
+  --divider-ink: #8a7c6d;
 }
 
 @theme inline {
@@ -58,6 +61,7 @@
   --color-border: var(--border);
   --color-border-soft: var(--border-soft);
   --color-divider: var(--divider);
+  --color-divider-ink: var(--divider-ink);
   --color-brand: var(--brand);
   --color-brand-soft: var(--brand-soft);
   --color-brand-deep: var(--brand-deep);
