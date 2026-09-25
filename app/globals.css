@@ -93,6 +93,16 @@
 
   /* Etiqueta de divisor */
   --divider-ink: #8a7c6d;
+
+  /* Páginas auth (login / activate) */
+  --bg-auth: #fbf4ec;
+  --login-grad-1: #f6a98e;
+  --login-grad-2: #f2937a;
+  --login-grad-3: #ec7e62;
+  --input-border: #eadfd0;
+  --consent-bg: #fbf1d6;
+  --consent-fg: #8a7234;
+  --check-bg: #5fb97e;
 }
 
 @theme inline {
@@ -142,6 +152,11 @@
   --color-dark-cta: var(--dark-cta);
   --color-kid-card-hover: var(--kid-card-hover);
   --color-chevron-ink: var(--chevron-ink);
+  --color-bg-auth: var(--bg-auth);
+  --color-input-border: var(--input-border);
+  --color-consent-bg: var(--consent-bg);
+  --color-consent-fg: var(--consent-fg);
+  --color-check-bg: var(--check-bg);
 }
 
 @theme {
