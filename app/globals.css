@@ -33,6 +33,20 @@
   --badge-actividad-fg: #2e89a6;
   --badge-anuncio-bg: #ccd8f4;
   --badge-anuncio-fg: #4e72c8;
+
+  /* Avatares */
+  --avatar-mateo-bg: #a9d9e8;
+  --avatar-mateo-fg: #1f7a93;
+  --avatar-anuncio-bg: #ccd8f4;
+  --avatar-anuncio-fg: #4e72c8;
+
+  /* Placeholder de foto */
+  --photo-placeholder-bg: #f4ece1;
+  --photo-placeholder-border: #dbcdba;
+  --photo-placeholder-fg: #b0a290;
+
+  /* Acento oscuro (Editar) */
+  --accent-deep: #c5503a;
 }
 
 @theme inline {
@@ -62,6 +76,10 @@
   --color-badge-actividad-fg: var(--badge-actividad-fg);
   --color-badge-anuncio-bg: var(--badge-anuncio-bg);
   --color-badge-anuncio-fg: var(--badge-anuncio-fg);
+  --color-photo-placeholder-bg: var(--photo-placeholder-bg);
+  --color-photo-placeholder-border: var(--photo-placeholder-border);
+  --color-photo-placeholder-fg: var(--photo-placeholder-fg);
+  --color-accent-deep: var(--accent-deep);
 }
 
 @theme {
