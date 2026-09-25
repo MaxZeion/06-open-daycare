@@ -34,9 +34,48 @@
   --badge-anuncio-bg: #ccd8f4;
   --badge-anuncio-fg: #4e72c8;
 
+  /* Badges de niño (alergia / vinculación) */
+  --allergy-badge-bg: #fbd8cc;
+  --allergy-badge-fg: #d9684a;
+  --link-badge-bg: #f9d2de;
+  --link-badge-fg: #c56486;
+
+  /* Estados de padre vinculado */
+  --parent-active-bg: #cfebd8;
+  --parent-active-fg: #3e9b6c;
+  --parent-pending-bg: #f7e7a6;
+  --parent-pending-fg: #9a7b1e;
+
+  /* Caja de alergias */
+  --alert-box-bg: #fbdad6;
+  --alert-icon: #f4a8a0;
+  --alert-title: #c5413a;
+  --alert-text: #b25249;
+
+  /* CTA oscuro (Resumen del día) */
+  --dark-cta: #3f362e;
+
   /* Avatares */
   --avatar-mateo-bg: #a9d9e8;
   --avatar-mateo-fg: #1f7a93;
+  --avatar-sofia-bg: #f4b8cc;
+  --avatar-sofia-fg: #c44a7a;
+  --avatar-benjamin-bg: #b9dec4;
+  --avatar-benjamin-fg: #3e8b62;
+  --avatar-valentina-bg: #f4dc8e;
+  --avatar-valentina-fg: #9a7b1e;
+  --avatar-tomas-bg: #c9b6e8;
+  --avatar-tomas-fg: #7b5fc0;
+  --avatar-emma-bg: #f4b8cc;
+  --avatar-emma-fg: #c44a7a;
+  --avatar-lucas-bg: #a9d9e8;
+  --avatar-lucas-fg: #1f7a93;
+  --avatar-olivia-bg: #b9dec4;
+  --avatar-olivia-fg: #3e8b62;
+  --avatar-lucia-bg: #c9b6e8;
+  --avatar-lucia-fg: #ffffff;
+  --avatar-diego-bg: #a9c7e8;
+  --avatar-diego-fg: #ffffff;
   --avatar-anuncio-bg: #ccd8f4;
   --avatar-anuncio-fg: #4e72c8;
 
@@ -84,6 +123,19 @@
   --color-photo-placeholder-border: var(--photo-placeholder-border);
   --color-photo-placeholder-fg: var(--photo-placeholder-fg);
   --color-accent-deep: var(--accent-deep);
+  --color-allergy-badge-bg: var(--allergy-badge-bg);
+  --color-allergy-badge-fg: var(--allergy-badge-fg);
+  --color-link-badge-bg: var(--link-badge-bg);
+  --color-link-badge-fg: var(--link-badge-fg);
+  --color-parent-active-bg: var(--parent-active-bg);
+  --color-parent-active-fg: var(--parent-active-fg);
+  --color-parent-pending-bg: var(--parent-pending-bg);
+  --color-parent-pending-fg: var(--parent-pending-fg);
+  --color-alert-box-bg: var(--alert-box-bg);
+  --color-alert-icon: var(--alert-icon);
+  --color-alert-title: var(--alert-title);
+  --color-alert-text: var(--alert-text);
+  --color-dark-cta: var(--dark-cta);
 }
 
 @theme {
