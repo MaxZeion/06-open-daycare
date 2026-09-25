@@ -23,6 +23,7 @@ export interface Kid {
   birthDate?: string;
   entry?: string;
   allergyNotes?: string;
+  medicalNotes?: string;
   parents?: Parent[];
 }
 
@@ -203,3 +204,24 @@ export const KIDS: Kid[] = [
     ],
   },
 ];
+
+export const SALAS = ["Soles", "Lunas", "Nubes", "Estrellas"] as const;
+export type Sala = (typeof SALAS)[number];
+
+export const AVATAR_PALETTE: Kid["avatar"][] = [
+  { bg: "var(--avatar-mateo-bg)", fg: "var(--avatar-mateo-fg)" },
+  { bg: "var(--avatar-sofia-bg)", fg: "var(--avatar-sofia-fg)" },
+  { bg: "var(--avatar-benjamin-bg)", fg: "var(--avatar-benjamin-fg)" },
+  { bg: "var(--avatar-valentina-bg)", fg: "var(--avatar-valentina-fg)" },
+  { bg: "var(--avatar-tomas-bg)", fg: "var(--avatar-tomas-fg)" },
+];
+
+export function buildKidId(name: string): string {
+  return name
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/[\s-]+/g, "-");
+}
