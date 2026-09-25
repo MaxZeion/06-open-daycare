@@ -1,6 +1,6 @@
 # SPEC 03 — Login y activación de cuenta
 
-> **Status:** Aprovado
+> **Status:** Implementado
 > **Depends on:** SPEC 01 (tokens + fuentes), SPEC 02 (convención `components/<feature>/`, rutas en inglés)
 > **Date:** 2026-09-25
 > **Objective:** Implementar las maquetas `pantallas/login.dc.html` y `pantallas/activar-cuenta.dc.html` como las rutas `/login` y `/activate`, fieles a su estilo, sin backend (los submits navegan a `/` y los campos son state local).
@@ -70,16 +70,16 @@ No se toca `AppShell`/`Sidebar`/`page.tsx` del feed ni nada de SPEC 01/02.
 
 ## Acceptance criteria
 
-- [ ] `npm run lint` y `npm run build` pasan sin errores.
-- [ ] `/login` desktop igual a `login.dc.html` sin la sección "INGRESO COMO": panel terracota en gradiente 155deg (logo OpenDayCare, headline "El día de cada niño, compartido con su familia.", footer "🌿 Guardería Sala Soles") + formulario (EMAIL, CONTRASEÑA, "¿Olvidaste tu contraseña?", CTA en gradiente, "¿Te invitó la guardería? Activá tu cuenta").
-- [ ] `/activate` igual a `activar-cuenta.dc.html`: logo 58px, "Bienvenida a OpenDayCare", caja de invitación (M · "Mateo · Sala Soles"), CÓDIGO `7K4P9` (Fredoka, letter-spacing), EMAIL, CREAR CONTRASEÑA, checkbox de fotos marcado, CTA, "¿Ya tenés cuenta? Iniciar sesión".
-- [ ] "Activá tu cuenta" (`/login`) navega a `/activate`; "Iniciar sesión" (`/activate`) navega a `/login`; sin 404 y sin errores en consola.
-- [ ] "Iniciar sesión" con email y contraseña no vacíos navega a `/` (feed); con algún campo vacío no navega.
-- [ ] "Activar mi cuenta" con email y contraseña no vacíos navega a `/`; con algún campo vacío no navega.
-- [ ] El checkbox de autorización se puede marcar/desmarcar (state local, inicialmente marcado).
-- [ ] Mobile (< 768px): `/login` muestra solo el formulario centrado a ancho completo (panel oculto, sin overflow horizontal); `/activate` se adapta sin overflow.
-- [ ] Colores y fuentes: fondo `#FBF4EC` en ambas páginas, gradiente del panel `#F6A98E→#F2937A→#EC7E62`, CTA `#F4977E→#EE8164`, Fredoka en títulos/logo, Nunito en cuerpo.
-- [ ] `/` (feed), `/kids` y `/kids/[id]` de SPEC 01/02 siguen funcionando sin cambios (regresión).
+- [x] `npm run lint` y `npm run build` pasan sin errores. — ok: lint exit 0; `next build` 16.3.6 ✓ con las 7 rutas (`/`, `/activate`, `/kids`, `/kids/[id]`, `/login`, `/_not-found`).
+- [x] `/login` desktop igual a `login.dc.html` sin la sección "INGRESO COMO": panel terracota en gradiente 155deg (logo OpenDayCare, headline "El día de cada niño, compartido con su familia.", footer "🌿 Guardería Sala Soles") + formulario (EMAIL, CONTRASEÑA, "¿Olvidaste tu contraseña?", CTA en gradiente, "¿Te invitó la guardería? Activá tu cuenta"). — ok: `.mcp-playwright/spec-03-login-desktop.png` vs `spec-03-mockup-login-desktop.png` (1280×800): panel idéntico; el formulario comienza en EMAIL, sin INGRESO COMO.
+- [x] `/activate` igual a `activar-cuenta.dc.html`: logo 58px, "Bienvenida a OpenDayCare", caja de invitación (M · "Mateo · Sala Soles"), CÓDIGO `7K4P9` (Fredoka, letter-spacing), EMAIL, CREAR CONTRASEÑA, checkbox de fotos marcado, CTA, "¿Ya tenés cuenta? Iniciar sesión". — ok: `.mcp-playwright/spec-03-activate-desktop.png` (+ `-full`) vs `spec-03-mockup-activate-desktop.png`: todos los elementos coinciden.
+- [x] "Activá tu cuenta" (`/login`) navega a `/activate`; "Iniciar sesión" (`/activate`) navega a `/login`; sin 404 y sin errores en consola. — ok: clics reales vía Playwright en ambos sentidos; consola de la app sin errores (el único error de la sesión fue un favicon 404 del servidor estático de maquetas).
+- [x] "Iniciar sesión" con email y contraseña no vacíos navega a `/` (feed); con algún campo vacío no navega. — ok: password vacío → se queda en `/login`; con password → llega a `/` (feed visible).
+- [x] "Activar mi cuenta" con email y contraseña no vacíos navega a `/`; con algún campo vacío no navega. — ok: email vacío → se queda en `/activate`; completado → llega a `/` (feed).
+- [x] El checkbox de autorización se puede marcar/desmarcar (state local, inicialmente marcado). — ok: inicial marcado (bg `#5FB97E`), clic → caja blanca sin check, 2º clic → marcado de nuevo (verificado por computed style).
+- [x] Mobile (< 768px): `/login` muestra solo el formulario centrado a ancho completo (panel oculto, sin overflow horizontal); `/activate` se adapta sin overflow. — ok: 390×844 — panel `display:none`, `scrollWidth 390 = clientWidth` (login), sin overflow (activate); `spec-03-login-mobile.png`, `spec-03-activate-mobile.png`.
+- [x] Colores y fuentes: fondo `#FBF4EC` en ambas páginas, gradiente del panel `#F6A98E→#F2937A→#EC7E62`, CTA `#F4977E→#EE8164`, Fredoka en títulos/logo, Nunito en cuerpo. — ok: tokens en `app/globals.css` (`--bg-auth`, `--login-grad-1/2/3`, `--input-border`, `--consent-*`, `--check-bg`) + estilos computados: fondo `rgb(251,244,236)`, gradiente 155deg exacto, CTA `#F4977E→#EE8164`, h1 Fredoka, cuerpo Nunito (vía `next/font/google` en layout, patrón canónico Next 16 `LayoutProps<"/">`).
+- [x] `/` (feed), `/kids` y `/kids/[id]` de SPEC 01/02 siguen funcionando sin cambios (regresión). — ok: `spec-03-regression-feed.png`, `spec-03-regression-kids.png`, `spec-03-regression-profile.png` (`/kids/mateo-fernandez`); cero errores en consola en las tres.
 
 ## Decisions
 
