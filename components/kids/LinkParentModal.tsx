@@ -73,7 +73,11 @@ export function LinkParentModal({
     return null;
   }
 
-  const nameInvalid = name.trim() === "";
+  const trimmedName = name.trim();
+  const nameParts = trimmedName.split(/\s+/).filter(Boolean);
+  const firstName = nameParts[0] ?? "";
+  const lastName = nameParts[1] ?? "";
+  const nameInvalid = firstName.length < 3 || lastName.length === 0;
   const emailInvalid = !EMAIL_RE.test(email.trim());
   const showNameError = attempted && nameInvalid;
   const showEmailError = attempted && emailInvalid;
@@ -83,7 +87,6 @@ export function LinkParentModal({
       setAttempted(true);
       return;
     }
-    const trimmedName = name.trim();
     const avatar =
       AVATAR_PALETTE[existingParentsCount % AVATAR_PALETTE.length];
     const parent: Parent = {
@@ -151,7 +154,7 @@ export function LinkParentModal({
             />
             {showNameError ? (
               <p className="mt-2 text-xs font-bold text-field-error">
-                Ingresá el nombre del padre o madre.
+                Ingresá nombre y apellido (mínimo 3 caracteres en el nombre).
               </p>
             ) : null}
           </div>

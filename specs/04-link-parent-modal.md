@@ -23,10 +23,10 @@ SPEC 02 implementó el perfil con "Vincular otro padre" como botón sin acción.
   - CTA "Enviar invitación" full-width con gradiente y icono de enviar.
 - Apertura del modal desde "Vincular otro padre" en `/kids/[id]` (actualmente no-op).
 - Cierre por X, Escape o click en el overlay; `body { overflow: hidden }` mientras esté abierto; `aria-modal`, `role="dialog"`, focus-trap mínimo.
-- Validación inline al pulsar "Enviar invitación":
-  - Nombre: requerido (`trim() !== ""`).
-  - Email: requerido y formato básico (`/^[^@\s]+@[^@\s]+\.[^@\s]+$/`).
-  - Sin alertas nativas; mensajes rojos bajo el campo, mismo estilo que `AddKidModal`.
+  - Validación inline al pulsar "Enviar invitación":
+    - Nombre: requerido, primer token con al menos 3 caracteres y al menos un segundo token (nombre + apellido). Espacios múltiples se colapsan; `trim()` antes de validar.
+    - Email: requerido y formato básico (`/^[^@\s]+@[^@\s]+\.[^@\s]+$/`).
+    - Sin alertas nativas; mensajes rojos bajo el campo, mismo estilo que `AddKidModal`.
 - Al enviar válido: añade un nuevo `Parent` al state local del niño con `status: "pendiente"`, `name`, `email`, `role` según el botón de parentesco elegido, cierra el modal y permanece en `/kids/[id]` (que ya muestra al nuevo padre en la lista "Padres vinculados").
 - Refactor de `app/kids/[id]/page.tsx`: el server component conserva la lectura de `params` y la búsqueda en `KIDS`; el render del perfil pasa a un wrapper client (`ProfileClient`) que mantiene `parents` como state.
 - Tokens nuevos (en tabla) en `app/globals.css`.
@@ -124,7 +124,7 @@ No se toca `AppShell`/`Sidebar` ni las rutas `/login`, `/activate`, `/kids`, `/`
 - [ ] `npm run dev` → `/kids/mateo-fernandez` carga sin errores en consola (regresión): siguen apareciendo Lucía ACTIVA + Diego PENDIENTE en "Padres vinculados".
 - [ ] "Vincular otro padre" abre el modal: overlay full-screen + dialog de 480px centrado con título "Vincular padre", subtítulo "a Mateo Fernández", botón X, banner azul, input nombre, input email, selector parentesco (Mamá preseleccionado), caja código "XXXXX" (Fredoka, letter-spacing, "Vence en 7 días"), CTA "Enviar invitación". `role="dialog"` + `aria-modal="true"`.
 - [ ] Click en X, Escape o click en el overlay (fuera del dialog) cierra el modal sin error en consola ni cambio de URL. Mientras está abierto, `document.body.style.overflow === "hidden"`.
-- [ ] CTA con nombre vacío → "Ingresá el nombre" inline bajo el campo; modal no se cierra, no se añade padre.
+- [ ] CTA con nombre inválido → "Ingresá nombre y apellido (mínimo 3 caracteres en el nombre)." inline bajo el campo; modal no se cierra, no se añade padre. Cubre los casos: vacío, sólo espacios, `"a"` (sin apellido y < 3), `"Ana"` (sin apellido), `"an b"` (nombre < 3), `"Ana B"` (boundary, válido).
 - [ ] CTA con email vacío → "Ingresá un email válido" inline; modal no se cierra.
 - [ ] CTA con email con formato inválido (ej. `foo`) → mismo error inline.
 - [ ] CTA con nombre y email válidos → modal se cierra; el perfil muestra el nuevo padre con badge PENDIENTE, role elegido, avatar de la paleta, y aparece **debajo** de Lucía y Diego (no reemplaza nada, no duplica los existentes).
@@ -146,6 +146,7 @@ No se toca `AppShell`/`Sidebar` ni las rutas `/login`, `/activate`, `/kids`, `/`
 - **No:** nuevo componente `parents-store.tsx`. La página del perfil es el único consumidor.
 - **No:** edición/baja de padres. Cada uno cuando le toque.
 - **Sí:** regex email simple (`/^[^@\s]+@[^@\s]+\.[^@\s]+$/`), alineado con lo que usa HTML5 `type=email` pero controlado por nosotros para el mensaje inline.
+- **Sí:** endurecimiento de la validación de nombre (≥ 3 chars en el primer token + segundo token requerido) en `LinkParentModal` y `AddKidModal`, alineado con el placeholder `Ej. Diego Fernández` / `Ej. Martina López` de las maquetas. Misma lógica en ambos para evitar la divergencia detectada al validar con un solo carácter.
 - **No:** focus-trap completo con librería externa. Sólo focus inicial al abrir y Escape; suficiente para mantener coherencia con `AddKidModal`.
 
 ## Risks
