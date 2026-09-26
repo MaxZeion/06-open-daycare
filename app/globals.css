@@ -128,6 +128,28 @@
   --code-title: #a88526;
   --code-sub: #a88526;
   --code-text: #8a7234;
+
+  /* Modal "Nueva publicación" */
+  --badge-comida-bg: #9a7b1e;
+  --badge-comida-fg: #ffffff;
+  --badge-siesta-bg: #e7dcf6;
+  --badge-siesta-fg: #7b5fc0;
+  --badge-animo-bg: #f9d2de;
+  --badge-animo-fg: #c56486;
+  --badge-foto-bg: #fbd8cc;
+  --badge-foto-fg: #d9684a;
+  --pill-actividad-solid-bg: #2e89a6;
+  --pill-actividad-solid-fg: #ffffff;
+  --chip-off-bg: #fffdf9;
+  --chip-off-fg: #6e6359;
+  --chip-off-border: #ece0d0;
+  --chip-on-bg: #3f362e;
+  --chip-on-fg: #ffffff;
+  --chip-on-border: #3f362e;
+  --photo-tile-bg: #f4ece1;
+  --photo-tile-border: #ece0d0;
+  --photo-tile-add-border: #dbcdba;
+  --photo-tile-add-fg: #b0a290;
 }
 
 @theme inline {
@@ -203,6 +225,26 @@
   --color-code-title: var(--code-title);
   --color-code-sub: var(--code-sub);
   --color-code-text: var(--code-text);
+  --color-badge-comida-bg: var(--badge-comida-bg);
+  --color-badge-comida-fg: var(--badge-comida-fg);
+  --color-badge-siesta-bg: var(--badge-siesta-bg);
+  --color-badge-siesta-fg: var(--badge-siesta-fg);
+  --color-badge-animo-bg: var(--badge-animo-bg);
+  --color-badge-animo-fg: var(--badge-animo-fg);
+  --color-badge-foto-bg: var(--badge-foto-bg);
+  --color-badge-foto-fg: var(--badge-foto-fg);
+  --color-pill-actividad-solid-bg: var(--pill-actividad-solid-bg);
+  --color-pill-actividad-solid-fg: var(--pill-actividad-solid-fg);
+  --color-chip-off-bg: var(--chip-off-bg);
+  --color-chip-off-fg: var(--chip-off-fg);
+  --color-chip-off-border: var(--chip-off-border);
+  --color-chip-on-bg: var(--chip-on-bg);
+  --color-chip-on-fg: var(--chip-on-fg);
+  --color-chip-on-border: var(--chip-on-border);
+  --color-photo-tile-bg: var(--photo-tile-bg);
+  --color-photo-tile-border: var(--photo-tile-border);
+  --color-photo-tile-add-border: var(--photo-tile-add-border);
+  --color-photo-tile-add-fg: var(--photo-tile-add-fg);
 }
 
 @theme {
