@@ -1,7 +1,7 @@
-# SPEC 04 — Vincular padre (modal)
+# SPEC 05 — Vincular padre (modal)
 
 > **Status:** Aprovado
-> **Depends on:** SPEC 02 (perfil de niño, tipo `Kid.parents[]` con `Parent.status`), `AddKidModal` (precedente de modal vía portal + validación inline)
+> **Depends on:** SPEC 02 (perfil de niño, tipo `Kid.parents[]` con `Parent.status`), SPEC 04 (AddKidModal, precedente de modal vía portal + validación inline)
 > **Date:** 2026-09-26
 > **Objective:** Convertir el no-op "Vincular otro padre" de `/kids/[id]` en un modal real que replica `pantallas/vincular-padre.dc.html` con sus cuatro bloques (banner + nombre + email + parentesco + código), valida inline que nombre y email sean obligatorios y válidos, y al enviar añade el padre como `pendiente` al mock del niño.
 
