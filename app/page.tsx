@@ -1,9 +1,12 @@
+"use client";
+
 import { PostCard } from "../components/feed/PostCard";
-import { POSTS } from "../components/feed/mockPosts";
+import { useFeed } from "../components/feed/FeedContext";
 import { AppShell } from "../components/shared/AppShell";
 import { CameraIcon } from "../components/shared/icons";
 
 export default function FeedPage() {
+  const { posts, openModal } = useFeed();
   return (
     <AppShell>
       <div className="mx-auto w-full max-w-[760px] px-5 pb-24 pt-8 md:px-10 md:pb-20 md:pt-[34px]">
@@ -21,6 +24,7 @@ export default function FeedPage() {
 
         <button
           type="button"
+          onClick={openModal}
           className="mb-6 flex w-full items-center gap-3.5 rounded-[18px] border border-border bg-surface px-[18px] py-3.5 shadow-composer"
         >
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand font-display text-base font-semibold text-white">
@@ -42,7 +46,7 @@ export default function FeedPage() {
         </div>
 
         <div className="flex flex-col gap-4">
-          {POSTS.map((post) => (
+          {posts.map((post) => (
             <PostCard key={post.id} post={post} />
           ))}
         </div>
