@@ -1,6 +1,6 @@
 # SPEC 08 — Tablas fundación `daycares` y `rooms` con seed
 
-> **Status:** Aprovado
+> **Status:** Implementado
 > **Depends on:** —
 > **Date:** 2026-09-26
 > **Objective:** Crear las tablas fundación `daycares` y `rooms` en Supabase, versionadas como migración SQL en el repo y aplicadas con el MCP, sembrando "Guardería Sala Soles" con 4 salas (Soles, Lunas, Estrellas, Mariposas) y dejando RLS activo con policies restrictivas compatibles con multi-tenant.
@@ -128,19 +128,19 @@ Convenciones:
 
 ### Acceptance criteria
 
-- [ ] Existe `supabase/migrations/01-create_daycares_and_rooms.sql` commiteado y contiene el SQL del Data model.
-- [ ] `apply_migration` con nombre `01_create_daycares_and_rooms` devuelve `success: true` (sin errores en la respuesta del MCP).
-- [ ] `list_tables` muestra `public.daycares` con columnas `id uuid`, `name text`, `created_at timestamptz`; PK `id`. Muestra `public.rooms` con columnas `id uuid`, `daycare_id uuid`, `name text`, `created_at timestamptz`; PK `id`.
-- [ ] `pg_class` reporta `relrowsecurity = true` para `daycares` y `rooms`.
-- [ ] `pg_policy` lista exactamente 2 policies: `daycares_select_authenticated` (cmd `r`) y `rooms_select_authenticated` (cmd `r`). Ninguna policy de `insert/update/delete`.
-- [ ] `select id, name from public.daycares` devuelve **una** fila: `Guardería Sala Soles`.
-- [ ] `select name from public.rooms order by name` devuelve **cuatro** filas: `Estrellas`, `Lunas`, `Mariposas`, `Soles`.
-- [ ] Las 4 filas de `rooms` tienen el mismo `daycare_id`, igual al `id` de la fila de `daycares`.
-- [ ] Existe el índice `rooms_daycare_id_idx` sobre `public.rooms(daycare_id)` (`\d public.rooms` lo lista o `pg_indexes` lo confirma).
-- [ ] `select * from public.daycares` ejecutado por `anon` devuelve **0 filas** (sin policy `select` para `anon`).
-- [ ] `select * from public.daycares` ejecutado por `authenticated` devuelve **1 fila** (policy `select` abierta).
-- [ ] El archivo del repo y el SQL aplicado por el MCP son idénticos byte a byte salvo el newline final (POSIX añade `\n` al archivo; `supabase_migrations.schema_migrations.statements[]` descarta ese newline al almacenar — esperado, no es drift real).
-- [ ] `npm run lint` y `npm run build` pasan sin errores (no se modificó código de la app).
+- [x] Existe `supabase/migrations/01-create_daycares_and_rooms.sql` commiteado y contiene el SQL del Data model. — ok: archivo en `main` (PR #12 mergueado, commit `6bf520d`); `git status` limpio; contenido (44 líneas) idéntico a la sección Data model.
+- [x] `apply_migration` con nombre `01_create_daycares_and_rooms` devuelve `success: true` (sin errores en la respuesta del MCP). — ok: registro en `supabase_migrations.schema_migrations` con `name='01_create_daycares_and_rooms'`, `version='20260926154611'`.
+- [x] `list_tables` muestra `public.daycares` con columnas `id uuid`, `name text`, `created_at timestamptz`; PK `id`. Muestra `public.rooms` con columnas `id uuid`, `daycare_id uuid`, `name text`, `created_at timestamptz`; PK `id`. — ok: MCP `list_tables` verbose → `daycares` (uuid/text/timestamptz, PK `id`) y `rooms` (uuid/uuid/text/timestamptz, PK `id`, FK `rooms_daycare_id_fkey`).
+- [x] `pg_class` reporta `relrowsecurity = true` para `daycares` y `rooms`. — ok: query MCP → `daycares: true`, `rooms: true`.
+- [x] `pg_policy` lista exactamente 2 policies: `daycares_select_authenticated` (cmd `r`) y `rooms_select_authenticated` (cmd `r`). Ninguna policy de `insert/update/delete`. — ok: query MCP → exactamente 2 filas, ambas `polcmd='r'`; cero `i/u/d`.
+- [x] `select id, name from public.daycares` devuelve **una** fila: `Guardería Sala Soles`. — ok: join daycares×rooms vía MCP → 1 daycare `Guardería Sala Soles` (`id a528311f-2757-4340-906a-ce3d042abcd9`); `list_tables` `rows: 1`.
+- [x] `select name from public.rooms order by name` devuelve **cuatro** filas: `Estrellas`, `Lunas`, `Mariposas`, `Soles`. — ok: query MCP → `Estrellas`, `Lunas`, `Mariposas`, `Soles` (4 filas, orden alfabético); `list_tables` `rows: 4`.
+- [x] Las 4 filas de `rooms` tienen el mismo `daycare_id`, igual al `id` de la fila de `daycares`. — ok: query MCP → las 4 filas comparten `daycare_id = a528311f-…` y `(r.daycare_id = d.id) = true` en todas.
+- [x] Existe el índice `rooms_daycare_id_idx` sobre `public.rooms(daycare_id)` (`\d public.rooms` lo lista o `pg_indexes` lo confirma). — ok: `pg_indexes` → `rooms_daycare_id_idx: CREATE INDEX … ON public.rooms USING btree (daycare_id)`.
+- [x] `select * from public.daycares` ejecutado por `anon` devuelve **0 filas** (sin policy `select` para `anon`). — ok: DO block MCP con `set local role anon` → `count(*) = 0` (el block raise-exception no disparó).
+- [x] `select * from public.daycares` ejecutado por `authenticated` devuelve **1 fila** (policy `select` abierta). — ok: DO block MCP con `set local role authenticated` → `count(*) = 1`.
+- [x] El archivo del repo y el SQL aplicado por el MCP son idénticos byte a byte salvo el newline final (POSIX añade `\n` al archivo; `supabase_migrations.schema_migrations.statements[]` descarta ese newline al almacenar — esperado, no es drift real). — ok: `diff` del archivo del repo (1211 B) vs `statements[0]` descargado de `schema_migrations` → IDENTICAL (el JSON de la DB termina en `;` sin `\n` final = 1210 B).
+- [x] `npm run lint` y `npm run build` pasan sin errores (no se modificó código de la app). — ok: `npm run lint` exit 0; `npm run build` exit 0 (7 rutas generadas).
 
 ## Decisions
 
