@@ -35,6 +35,12 @@ OpenDayCare — app de guardería. App Router en `app/` (aún es el scaffold de 
 
 - Playwright: screenshots y cualquier salida ha de ir en la carpeta `.mcp-playwright/` (ya está en .gitignore).
 - Context7: úsalo para traer documentación actualizada del framework en lugar de confiar en el training data.
+- Supabase: MCP remoto (project ref `nmwabdzrdjubhsupiflu`, read-only). Úsalo para inspeccionar tablas, ejecutar SQL de consulta, aplicar migraciones, revisar advisors (seguridad/rendimiento) y logs. Para el esquema objetivo de la app, mira la referencia `docs` (`../07-DB-Schema`); lo que hay en la DB actual se comprueba con `list_tables`.
+
+## Skills de Supabase
+
+- `supabase` (`.agents/skills/supabase/`) — carga cualquier tarea que involucre Supabase: Database, Auth, Edge Functions, Realtime, Storage, RLS, CLI, integración con Next.js (`@supabase/ssr`), troubleshooting y logs.
+- `supabase-postgres-best-practices` (`.agents/skills/supabase-postgres-best-practices/`) — carga ANTES de escribir/cambiar algo que viva en la DB: tablas, migraciones, RLS, índices, funciones, queries lentas.
 
 ## Spec Driven Development
 
