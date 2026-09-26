@@ -154,7 +154,7 @@ export function LinkParentModal({
             />
             {showNameError ? (
               <p className="mt-2 text-xs font-bold text-field-error">
-                Ingresá nombre y apellido (mínimo 3 caracteres en el nombre).
+                Introduce nombre y apellido (mínimo 3 caracteres en el nombre).
               </p>
             ) : null}
           </div>
@@ -175,7 +175,7 @@ export function LinkParentModal({
             />
             {showEmailError ? (
               <p className="mt-2 text-xs font-bold text-field-error">
-                Ingresá un email válido.
+                Introduce un email válido.
               </p>
             ) : null}
           </div>

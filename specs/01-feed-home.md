@@ -35,7 +35,7 @@ interface Post {
   id: string;
   author: { name: string; initials: string; bg: string; fg: string };
   time: string;          // "14:20"
-  publishedBy: string;   // "publicado por vos"
+  publishedBy: string;   // "publicado por ti"
   kind: PostKind;
   recipient: string;     // "familia de Mateo" | "toda la sala"
   body: string;

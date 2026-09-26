@@ -12,7 +12,7 @@ function NotFound() {
         No encontramos a este niño
       </p>
       <p className="text-[15px] text-muted">
-        Revisá el enlace o volvé a la lista.
+        Revisa el enlace o vuelve a la lista.
       </p>
       <Link
         href="/kids"

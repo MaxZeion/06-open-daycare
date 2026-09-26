@@ -57,7 +57,7 @@ export default function LoginPage() {
             Iniciar sesión
           </h2>
           <p className="mt-[6px] mb-7 text-[15px] text-muted-strong">
-            Ingresá para ver el día de hoy.
+            Introduce para ver el día de hoy.
           </p>
 
           <div className="mb-2 text-xs font-bold tracking-[0.7px] text-muted-strong">
@@ -101,7 +101,7 @@ export default function LoginPage() {
               href="/activate"
               className="font-extrabold text-accent-deep"
             >
-              Activá tu cuenta
+              Activa tu cuenta
             </Link>
           </p>
         </div>

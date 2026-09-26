@@ -124,8 +124,8 @@ No se toca `AppShell`/`Sidebar` ni las rutas `/login`, `/activate`, `/kids`, `/`
 - [ ] `npm run dev` → `/kids/mateo-fernandez` carga sin errores en consola (regresión): siguen apareciendo Lucía ACTIVA + Diego PENDIENTE en "Padres vinculados".
 - [ ] "Vincular otro padre" abre el modal: overlay full-screen + dialog de 480px centrado con título "Vincular padre", subtítulo "a Mateo Fernández", botón X, banner azul, input nombre, input email, selector parentesco (Mamá preseleccionado), caja código "XXXXX" (Fredoka, letter-spacing, "Vence en 7 días"), CTA "Enviar invitación". `role="dialog"` + `aria-modal="true"`.
 - [ ] Click en X, Escape o click en el overlay (fuera del dialog) cierra el modal sin error en consola ni cambio de URL. Mientras está abierto, `document.body.style.overflow === "hidden"`.
-- [ ] CTA con nombre inválido → "Ingresá nombre y apellido (mínimo 3 caracteres en el nombre)." inline bajo el campo; modal no se cierra, no se añade padre. Cubre los casos: vacío, sólo espacios, `"a"` (sin apellido y < 3), `"Ana"` (sin apellido), `"an b"` (nombre < 3), `"Ana B"` (boundary, válido).
-- [ ] CTA con email vacío → "Ingresá un email válido" inline; modal no se cierra.
+- [ ] CTA con nombre inválido → "Introduce nombre y apellido (mínimo 3 caracteres en el nombre)." inline bajo el campo; modal no se cierra, no se añade padre. Cubre los casos: vacío, sólo espacios, `"a"` (sin apellido y < 3), `"Ana"` (sin apellido), `"an b"` (nombre < 3), `"Ana B"` (boundary, válido).
+- [ ] CTA con email vacío → "Introduce un email válido" inline; modal no se cierra.
 - [ ] CTA con email con formato inválido (ej. `foo`) → mismo error inline.
 - [ ] CTA con nombre y email válidos → modal se cierra; el perfil muestra el nuevo padre con badge PENDIENTE, role elegido, avatar de la paleta, y aparece **debajo** de Lucía y Diego (no reemplaza nada, no duplica los existentes).
 - [ ] El código se genera fresco en cada apertura (no se reusa entre aperturas consecutivas).
