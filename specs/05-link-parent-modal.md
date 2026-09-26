@@ -120,19 +120,19 @@ No se toca `AppShell`/`Sidebar` ni las rutas `/login`, `/activate`, `/kids`, `/`
 
 ## Acceptance criteria
 
-- [ ] `npm run lint` y `npm run build` pasan sin errores.
-- [ ] `npm run dev` → `/kids/mateo-fernandez` carga sin errores en consola (regresión): siguen apareciendo Lucía ACTIVA + Diego PENDIENTE en "Padres vinculados".
-- [ ] "Vincular otro padre" abre el modal: overlay full-screen + dialog de 480px centrado con título "Vincular padre", subtítulo "a Mateo Fernández", botón X, banner azul, input nombre, input email, selector parentesco (Mamá preseleccionado), caja código "XXXXX" (Fredoka, letter-spacing, "Vence en 7 días"), CTA "Enviar invitación". `role="dialog"` + `aria-modal="true"`.
-- [ ] Click en X, Escape o click en el overlay (fuera del dialog) cierra el modal sin error en consola ni cambio de URL. Mientras está abierto, `document.body.style.overflow === "hidden"`.
-- [ ] CTA con nombre inválido → "Introduce nombre y apellido (mínimo 3 caracteres en el nombre)." inline bajo el campo; modal no se cierra, no se añade padre. Cubre los casos: vacío, sólo espacios, `"a"` (sin apellido y < 3), `"Ana"` (sin apellido), `"an b"` (nombre < 3), `"Ana B"` (boundary, válido).
-- [ ] CTA con email vacío → "Introduce un email válido" inline; modal no se cierra.
-- [ ] CTA con email con formato inválido (ej. `foo`) → mismo error inline.
-- [ ] CTA con nombre y email válidos → modal se cierra; el perfil muestra el nuevo padre con badge PENDIENTE, role elegido, avatar de la paleta, y aparece **debajo** de Lucía y Diego (no reemplaza nada, no duplica los existentes).
-- [ ] El código se genera fresco en cada apertura (no se reusa entre aperturas consecutivas).
-- [ ] Sin recarga, abrir/cerrar varias veces seguidas funciona; abrir → generar padre 1 → cerrar, volver a abrir → CTA sigue deshabilitado (sin nombre/email) → tras completar añade padre 2 sin tocar padre 1.
-- [ ] Tokens correctos por estilo computado: banner bg `rgb(227,236,251)` fg `rgb(63,86,148)`; caja código bg `rgb(251,241,214)`; CTA gradiente `rgb(244,151,126)` → `rgb(238,129,100)`; título Fredoka, body Nunito.
-- [ ] Mobile (<768px): modal ocupa el ancho disponible, scroll del body bloqueado, sin overflow horizontal, `aria-modal` correcto.
-- [ ] Regresión: `/`, `/kids`, `/login`, `/activate`, `/kids/<otro-id>` siguen renderizando sin nuevos errores en consola.
+- [x] `npm run lint` y `npm run build` pasan sin errores. — ok: `npm run lint` exit 0, `npm run build` exit 0 (tras el fix de 9/10; primero falló con "setState synchronously within an effect", resuelto con mount condicional).
+- [x] `npm run dev` → `/kids/mateo-fernandez` carga sin errores en consola (regresión): siguen apareciendo Lucía ACTIVA + Diego PENDIENTE en "Padres vinculados". — ok: HTTP 200, consola 0 errores; fresh load muestra Lucía·ACTIVA + Diego·PENDIENTE (`.mcp-playwright/spec-05-linkparent-desktop.png`).
+- [x] "Vincular otro padre" abre el modal: overlay full-screen + dialog de 480px centrado con título "Vincular padre", subtítulo "a Mateo Fernández", botón X, banner azul, input nombre, input email, selector parentesco (Mamá preseleccionado), caja código "XXXXX" (Fredoka, letter-spacing, "Vence en 7 días"), CTA "Enviar invitación". `role="dialog"` + `aria-modal="true"`. — ok: ancho 480px, role/aria-modal/aria-label presentes, Mamá `aria-pressed=true`, todos los bloques de la maqueta renderizados (grep `vincular-padre.dc.html` → mismas cadenas). Evidencia `.mcp-playwright/spec-05-linkparent-desktop.png`.
+- [x] Click en X, Escape o click en el overlay (fuera del dialog) cierra el modal sin error en consola ni cambio de URL. Mientras está abierto, `document.body.style.overflow === "hidden"`. — ok: `closedByX:true`, `closedByOverlay:true`, Escape cierra (probado en 9/10), URL invariante, body overflow `hidden` con modal abierto.
+- [x] CTA con nombre inválido → "Introduce nombre y apellido (mínimo 3 caracteres en el nombre)." inline bajo el campo; modal no se cierra, no se añade padre. Cubre los casos: vacío, sólo espacios, `"a"` (sin apellido y < 3), `"Ana"` (sin apellido), `"an b"` (nombre < 3), `"Ana B"` (boundary, válido). — ok: los 5 inválidos muestran el error exacto y el modal sigue abierto; `"Ana B"` NO dispara error de nombre (pasa al error de email), confirmando límite válido.
+- [x] CTA con email vacío → "Introduce un email válido" inline; modal no se cierra. — ok: `emailEmptyErr:true`, modal abierto.
+- [x] CTA con email con formato inválido (ej. `foo`) → mismo error inline. — ok: `emailBadErr:true` con `foo`.
+- [x] CTA con nombre y email válidos → modal se cierra; el perfil muestra el nuevo padre con badge PENDIENTE, role elegido, avatar de la paleta, y aparece **debajo** de Lucía y Diego (no reemplaza nada, no duplica los existentes). — ok: "Ana Torres" (Mamá) y "Beto Ruiz" (Papá) añadidos en orden tras Lucía/Diego con PENDIENTE + iniciales, `modalClosed1/2:true`, sin duplicar.
+- [x] El código se genera fresco en cada apertura (no se reusa entre aperturas consecutivas). — ok: FIX aplicado (mount condicional); pruebas post-fix `c1="CSEMV"` ≠ `c2="NYBOE"` (`codeChanged:true`). Antes fallaba (mismo código).
+- [x] Sin recarga, abrir/cerrar varias veces seguidas funciona; abrir → generar padre 1 → cerrar, volver a abrir → CTA sigue deshabilitado (sin nombre/email) → tras completar añade padre 2 sin tocar padre 1. — ok: FIX aplicado; post-fix `nameOnReopen:""`/`emailOnReopen:""` (`fieldsCleared:true`) y padre 2 añadido sin tocar padre 1. Antes fallaba (campos y código persistían).
+- [x] Tokens correctos por estilo computado: banner bg `rgb(227,236,251)` fg `rgb(63,86,148)`; caja código bg `rgb(251,241,214)`; CTA gradiente `rgb(244,151,126)` → `rgb(238,129,100)`; título Fredoka, body Nunito. — ok: computed styles exactos; code title `#A88526`, code text `#8A7234`, kinship-on `#CCD8F4`, close-btn `#F0E6D8`.
+- [x] Mobile (<768px): modal ocupa el ancho disponible, scroll del body bloqueado, sin overflow horizontal, `aria-modal` correcto. — ok: 390×844 dialog 358px, `scrollWidth 390==innerWidth` (0 overflow), body hidden, `aria-modal=true`. Evidencia `.mcp-playwright/spec-05-linkparent-mobile.png`.
+- [x] Regresión: `/`, `/kids`, `/login`, `/activate`, `/kids/<otro-id>` siguen renderizando sin nuevos errores en consola. — ok: `/`, `/kids`, `/login`, `/activate`, `/kids/sofia-mendez`, `/kids/no-existe` → HTTP 200; consola 0 errores en las rutas revisadas.
 
 ## Decisions
 

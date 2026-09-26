@@ -123,13 +123,15 @@ export function ProfileClient({ kid }: { kid: Kid }) {
         />
       </div>
 
-      <LinkParentModal
-        open={linkOpen}
-        kidName={kid.name}
-        existingParentsCount={parents.length}
-        onClose={() => setLinkOpen(false)}
-        onSubmit={handleSubmit}
-      />
+      {linkOpen ? (
+        <LinkParentModal
+          open={linkOpen}
+          kidName={kid.name}
+          existingParentsCount={parents.length}
+          onClose={() => setLinkOpen(false)}
+          onSubmit={handleSubmit}
+        />
+      ) : null}
     </>
   );
 }
