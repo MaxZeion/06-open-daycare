@@ -11,6 +11,7 @@ import type { ReactNode } from "react";
 import type { Kid } from "../kids/mockKids";
 import type { Post, PostKind } from "./mockPosts";
 import { POSTS } from "./mockPosts";
+import { NewPostModal } from "./NewPostModal";
 
 interface PublishInput {
   kind: PostKind;
@@ -95,7 +96,10 @@ export function FeedProvider({ children }: { children: ReactNode }) {
   );
 
   return (
-    <FeedContext.Provider value={value}>{children}</FeedContext.Provider>
+    <FeedContext.Provider value={value}>
+      {children}
+      <NewPostModal open={modalOpen} onClose={closeModal} publish={publish} />
+    </FeedContext.Provider>
   );
 }
 
