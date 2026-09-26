@@ -15,7 +15,7 @@ Crear ambas tablas juntas, con su contenido mínimo, evita un spec huérfano de 
 
 **In:**
 
-- Archivo `supabase/migrations/<timestamp>_create_daycares_and_rooms.sql` con:
+- Archivo `supabase/migrations/01-create_daycares_and_rooms.sql` con:
   - `create extension if not exists pgcrypto schema extensions;` (defensivo: ya está instalada en el proyecto, pero el archivo queda portable).
   - `create table public.daycares (id uuid pk default gen_random_uuid(), name text not null, created_at timestamptz not null default now())`.
   - `create table public.rooms (id uuid pk default gen_random_uuid(), daycare_id uuid not null references public.daycares(id) on delete cascade, name text not null, created_at timestamptz not null default now())`.
@@ -23,7 +23,7 @@ Crear ambas tablas juntas, con su contenido mínimo, evita un spec huérfano de 
   - `alter table ... enable row level security` en ambas.
   - Policies restrictivas (ver "Policies" más abajo).
   - Seeds: una fila en `daycares` (`name = 'Guardería Sala Soles'`) y cuatro filas en `rooms` (`Soles`, `Lunas`, `Estrellas`, `Mariposas`) con `daycare_id` apuntando a la fila anterior.
-- Aplicar la migración con el MCP: `apply_migration` con `name: "create_daycares_and_rooms"` y el mismo SQL.
+- Aplicar la migración con el MCP: `apply_migration` con `name: "01_create_daycares_and_rooms"` y el mismo SQL.
 - Verificación desde el MCP (queries de lectura; el INSERT inicial corre en la propia migración bajo el rol postgres que bypasea RLS).
 - Documentar en el spec cómo revertir (down-migration manual con `drop table`) para uso futuro; **no se incluye el down en el archivo versionado** (Supabase CLI no lo usa por convención).
 
@@ -43,7 +43,7 @@ Crear ambas tablas juntas, con su contenido mínimo, evita un spec huérfano de 
 ## Data model
 
 ```sql
--- supabase/migrations/<timestamp>_create_daycares_and_rooms.sql
+-- supabase/migrations/01-create_daycares_and_rooms.sql
 
 create extension if not exists pgcrypto schema extensions;
 
@@ -113,8 +113,8 @@ Convenciones:
 ## Implementation plan
 
 1. Crear la carpeta `supabase/migrations/` en el repo.
-2. Crear el archivo `supabase/migrations/<timestamp>_create_daycares_and_rooms.sql` con el SQL del Data model.
-3. Aplicar con el MCP: `apply_migration` con `name: "create_daycares_and_rooms"` y `query` = contenido del archivo. Verificar `success: true`.
+2. Crear el archivo `supabase/migrations/01-create_daycares_and_rooms.sql` con el SQL del Data model.
+3. Aplicar con el MCP: `apply_migration` con `name: "01_create_daycares_and_rooms"` y `query` = contenido del archivo. Verificar `success: true`.
 4. Verificar desde el MCP:
    - `list_tables` muestra `public.daycares` y `public.rooms` con sus columnas y PK.
    - `select id, name from public.daycares` → 1 fila (`Guardería Sala Soles`).
@@ -128,8 +128,8 @@ Convenciones:
 
 ### Acceptance criteria
 
-- [ ] Existe `supabase/migrations/<timestamp>_create_daycares_and_rooms.sql` commiteado y contiene el SQL del Data model.
-- [ ] `apply_migration` con nombre `create_daycares_and_rooms` devuelve `success: true` (sin errores en la respuesta del MCP).
+- [ ] Existe `supabase/migrations/01-create_daycares_and_rooms.sql` commiteado y contiene el SQL del Data model.
+- [ ] `apply_migration` con nombre `01_create_daycares_and_rooms` devuelve `success: true` (sin errores en la respuesta del MCP).
 - [ ] `list_tables` muestra `public.daycares` con columnas `id uuid`, `name text`, `created_at timestamptz`; PK `id`. Muestra `public.rooms` con columnas `id uuid`, `daycare_id uuid`, `name text`, `created_at timestamptz`; PK `id`.
 - [ ] `pg_class` reporta `relrowsecurity = true` para `daycares` y `rooms`.
 - [ ] `pg_policy` lista exactamente 2 policies: `daycares_select_authenticated` (cmd `r`) y `rooms_select_authenticated` (cmd `r`). Ninguna policy de `insert/update/delete`.
@@ -154,6 +154,7 @@ Convenciones:
 - **Sí:** `on delete cascade` en `rooms.daycare_id`. Una sala sin daycare no tiene sentido.
 - **Sí:** policies restrictivas (decidido por el usuario). `select` para `authenticated`, sin policies de escritura. Compatible con evolución a multi-tenant estricto.
 - **Sí:** `create extension if not exists pgcrypto schema extensions` defensivo en el archivo. Idempotente; portable a un proyecto Supabase recién creado.
+- **Sí:** convención de nombre de archivo de migración `supabase/migrations/NN-<slug>.sql` con `NN` secuencial de dos dígitos (01 para este spec, 02 para el siguiente, etc.). El `name` pasado a `apply_migration` usa el mismo `NN` con snake_case (`01_create_daycares_and_rooms`) para que el historial de Supabase y los archivos del repo estén alineados. Decidido por el usuario.
 - **No:** `supabase/seed.sql` separado. Los seeds viven en la migración para garantizar reproducibilidad.
 - **No:** down-migration versionada. Supabase CLI no la ejecuta por defecto y mantenerla en sync con la up es trabajo sin valor hoy.
 - **No:** `triggers set_updated_at` (consistente con no tener la columna).
