@@ -122,6 +122,14 @@ export function PhotoIcon(props: IconProps) {
   );
 }
 
+export function ImagePlusIcon(props: IconProps) {
+  return (
+    <Svg strokeWidth={2} {...props}>
+      <path d="M12 5v14M5 12h14" />
+    </Svg>
+  );
+}
+
 export function MenuIcon(props: IconProps) {
   return (
     <Svg {...props}>
