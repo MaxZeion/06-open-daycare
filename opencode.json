@@ -1,5 +1,11 @@
 {
   "$schema": "https://opencode.ai/config.json",
+  "references": {
+    "docs": {
+      "path": "../07-DB-Schema",
+      "description": "Schema de base de datos, tablas, columnas y referencias a crear, esto no está implementado en la base de datos actual, solo es para referencia"
+    }
+  },
   "permission": {
     "external_directory": {
       "/tmp/**": "allow"
