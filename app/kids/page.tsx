@@ -4,12 +4,22 @@ import { useState } from "react";
 import { AppShell } from "../../components/shared/AppShell";
 import { PlusIcon, SearchIcon } from "../../components/shared/icons";
 import { KidCard } from "../../components/kids/KidCard";
-import { KIDS } from "../../components/kids/mockKids";
+import { AddKidModal } from "../../components/kids/AddKidModal";
+import { KIDS, type Kid } from "../../components/kids/mockKids";
 
 export default function KidsPage() {
   const [query, setQuery] = useState("");
+  const [addOpen, setAddOpen] = useState(false);
+  const [addedKids, setAddedKids] = useState<Kid[]>([]);
+
+  const allKids = [...addedKids, ...KIDS];
   const term = query.trim().toLowerCase();
-  const filtered = KIDS.filter((kid) => kid.name.toLowerCase().includes(term));
+  const filtered = allKids.filter((kid) => kid.name.toLowerCase().includes(term));
+
+  function handleAddKid(kid: Kid) {
+    setAddedKids((current) => [kid, ...current]);
+    setAddOpen(false);
+  }
 
   return (
     <AppShell active="kids">
@@ -25,6 +35,7 @@ export default function KidsPage() {
           </div>
           <button
             type="button"
+            onClick={() => setAddOpen(true)}
             className="flex items-center gap-2 rounded-[14px] bg-[linear-gradient(180deg,var(--brand-deep-soft),var(--brand-deep))] px-[18px] py-[11px] text-[14.5px] font-extrabold text-white shadow-cta"
           >
             <PlusIcon className="h-[17px] w-[17px]" />
@@ -46,7 +57,7 @@ export default function KidsPage() {
           <span className="text-[12.5px] font-extrabold tracking-[0.8px] text-ink">
             SALA SOLES
           </span>
-          <span className="text-[13px] text-muted">{KIDS.length} niños</span>
+          <span className="text-[13px] text-muted">{allKids.length} niños</span>
           <span className="h-px flex-1 bg-divider" />
         </div>
 
@@ -62,6 +73,13 @@ export default function KidsPage() {
           </p>
         )}
       </div>
+
+      <AddKidModal
+        open={addOpen}
+        addedCount={addedKids.length}
+        onClose={() => setAddOpen(false)}
+        onSave={handleAddKid}
+      />
     </AppShell>
   );
 }
