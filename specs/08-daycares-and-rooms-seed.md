@@ -139,7 +139,7 @@ Convenciones:
 - [ ] Existe el índice `rooms_daycare_id_idx` sobre `public.rooms(daycare_id)` (`\d public.rooms` lo lista o `pg_indexes` lo confirma).
 - [ ] `select * from public.daycares` ejecutado por `anon` devuelve **0 filas** (sin policy `select` para `anon`).
 - [ ] `select * from public.daycares` ejecutado por `authenticated` devuelve **1 fila** (policy `select` abierta).
-- [ ] El archivo del repo y el SQL aplicado por el MCP son idénticos (sin drift).
+- [ ] El archivo del repo y el SQL aplicado por el MCP son idénticos byte a byte salvo el newline final (POSIX añade `\n` al archivo; `supabase_migrations.schema_migrations.statements[]` descarta ese newline al almacenar — esperado, no es drift real).
 - [ ] `npm run lint` y `npm run build` pasan sin errores (no se modificó código de la app).
 
 ## Decisions
