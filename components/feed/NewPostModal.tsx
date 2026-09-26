@@ -260,10 +260,10 @@ export function NewPostModal({ open, onClose, publish }: NewPostModalProps) {
               FOTOS
             </div>
             <div className="flex gap-3">
-              <div className="flex h-24 w-24 items-center justify-center rounded-[14px] border border-photo-tile-border bg-photo-tile text-chevron-ink">
+              <div className="flex h-24 w-24 items-center justify-center rounded-[14px] border border-photo-tile-border bg-photo-tile-bg text-chevron-ink">
                 <PhotoIcon className="h-[26px] w-[26px]" />
               </div>
-              <div className="flex h-24 w-24 flex-col items-center justify-center gap-1.5 rounded-[14px] border-[1.5px] border-dashed border-photo-tile-add-border bg-photo-tile text-photo-tile-add-fg">
+              <div className="flex h-24 w-24 flex-col items-center justify-center gap-1.5 rounded-[14px] border-[1.5px] border-dashed border-photo-tile-add-border bg-photo-tile-bg text-photo-tile-add-fg">
                 <ImagePlusIcon className="h-[22px] w-[22px] text-accent-deep" />
                 <span className="text-xs">Agregar</span>
               </div>

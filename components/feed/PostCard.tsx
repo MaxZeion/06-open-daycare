@@ -16,7 +16,7 @@ export function PostCard({ post }: { post: Post }) {
           className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full font-display text-[17px] font-semibold"
           style={{ backgroundColor: post.author.bg, color: post.author.fg }}
         >
-          {post.kind === "anuncio" ? (
+          {post.author.initials === "" ? (
             <MegaphoneIcon className="h-5 w-5" />
           ) : (
             post.author.initials
