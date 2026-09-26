@@ -110,6 +110,24 @@
   --field-chevron: #b0a290;
   --field-placeholder: #b6a99b;
   --field-error: #c5413a;
+
+  /* Modal "Vincular padre" */
+  --info-banner-bg: #e3ecfb;
+  --info-banner-fg: #3f5694;
+  --info-banner-icon: #4e72c8;
+  --close-btn-bg: #f0e6d8;
+  --close-btn-fg: #94887b;
+  --kinship-on-bg: #ccd8f4;
+  --kinship-on-fg: #4e72c8;
+  --kinship-on-border: #9fb8ec;
+  --kinship-off-bg: #fffdf9;
+  --kinship-off-fg: #6e6359;
+  --kinship-off-border: #ece0d0;
+  --code-box-bg: #fbf1d6;
+  --code-box-border: #e6d08a;
+  --code-title: #a88526;
+  --code-sub: #a88526;
+  --code-text: #8a7234;
 }
 
 @theme inline {
@@ -169,6 +187,22 @@
   --color-field-chevron: var(--field-chevron);
   --color-field-placeholder: var(--field-placeholder);
   --color-field-error: var(--field-error);
+  --color-info-banner-bg: var(--info-banner-bg);
+  --color-info-banner-fg: var(--info-banner-fg);
+  --color-info-banner-icon: var(--info-banner-icon);
+  --color-close-btn-bg: var(--close-btn-bg);
+  --color-close-btn-fg: var(--close-btn-fg);
+  --color-kinship-on-bg: var(--kinship-on-bg);
+  --color-kinship-on-fg: var(--kinship-on-fg);
+  --color-kinship-on-border: var(--kinship-on-border);
+  --color-kinship-off-bg: var(--kinship-off-bg);
+  --color-kinship-off-fg: var(--kinship-off-fg);
+  --color-kinship-off-border: var(--kinship-off-border);
+  --color-code-box-bg: var(--code-box-bg);
+  --color-code-box-border: var(--code-box-border);
+  --color-code-title: var(--code-title);
+  --color-code-sub: var(--code-sub);
+  --color-code-text: var(--code-text);
 }
 
 @theme {
