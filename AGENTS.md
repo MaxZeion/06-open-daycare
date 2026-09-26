@@ -35,7 +35,7 @@ OpenDayCare — app de guardería. App Router en `app/` (aún es el scaffold de 
 
 - Playwright: screenshots y cualquier salida ha de ir en la carpeta `.mcp-playwright/` (ya está en .gitignore).
 - Context7: úsalo para traer documentación actualizada del framework en lugar de confiar en el training data.
-- Supabase: MCP remoto (project ref `nmwabdzrdjubhsupiflu`, read-only). Úsalo para inspeccionar tablas, ejecutar SQL de consulta, aplicar migraciones, revisar advisors (seguridad/rendimiento) y logs. Para el esquema objetivo de la app, mira la referencia `docs` (`../07-DB-Schema`); lo que hay en la DB actual se comprueba con `list_tables`.
+- Supabase: MCP remoto (project ref `nmwabdzrdjubhsupiflu`). Úsalo para inspeccionar tablas, ejecutar SQL de consulta, **aplicar migraciones**, revisar advisors (seguridad/rendimiento) y logs. Para el esquema objetivo de la app, mira la referencia `docs` (`../07-DB-Schema`); lo que hay en la DB actual se comprueba con `list_tables`. La migración aplicada queda registrada en `supabase_migrations.schema_migrations` (`name`, `version`, `statements[]`). **Ver `## Migraciones de base de datos` más abajo para la convención de carpeta (`supabase/migrations/`), nomenclatura (`NN-<slug>.sql` ↔ `apply_migration` `NN_<slug>`) y el flujo completo de 6 pasos.**
 
 ## Skills de Supabase
 
@@ -47,6 +47,42 @@ OpenDayCare — app de guardería. App Router en `app/` (aún es el scaffold de 
 - /spec para espicificar las especificaciones
 - /spec-impl para implementar las especificaciones
 - /spec-verify para verificar los acceptance criteria (delega en el agente `spec-verify`, `.opencode/agents/spec-verify.md`)
+- Specs que tocan DB → ver `## Migraciones de base de datos` antes de redactar el plan.
+
+## Migraciones de base de datos
+
+Las migraciones viven en **`supabase/migrations/`** y se aplican con el MCP de Supabase (`apply_migration`). La fuente de verdad es el archivo del repo; el MCP no debe usarse para DDL/DML que no exista también como `.sql` versionado.
+
+### Nomenclatura
+
+- **Archivo:** `supabase/migrations/NN-<slug>.sql`
+  - `NN` = contador secuencial de dos dígitos (`01`, `02`, `03`, …). El siguiente spec que añada una migración mira el último `NN` existente en `supabase/migrations/` y suma uno.
+  - `slug` = snake_case descriptivo (ej. `create_daycares_and_rooms`).
+  - Termina con `\n` final (POSIX). Supabase descarta ese newline al almacenar en `supabase_migrations.schema_migrations.statements[]`; es esperado, no es drift.
+- **Nombre en `apply_migration`:** `NN_<slug>` en snake_case (ej. `01_create_daycares_and_rooms`). Coincide con el nombre del archivo, guion por guion bajo.
+
+### Flujo al implementar un spec que toca DB
+
+1. Crear/editar `supabase/migrations/NN-<slug>.sql` con el SQL del spec (DDL + policies + seeds si aplica).
+2. Aplicar con `apply_migration` del MCP pasando el mismo SQL del archivo, byte-idéntico.
+3. Verificar con queries al MCP:
+   - `list_tables` (columnas, PK, FK, RLS, conteos).
+   - `pg_class.relrowsecurity` para confirmar RLS on.
+   - `pg_policy` para confirmar nº y tipo (`r`/`i`/`u`/`d`) de policies.
+   - `pg_indexes` para índices custom.
+   - Role-switch (`set local role anon` / `authenticated`) cuando el criterio de aceptación lo requiera.
+4. Drift check: comparar el contenido del archivo con `statements[0]` del registro en `supabase_migrations.schema_migrations` (modulo el newline final). Sin drift = sin cambios manuales sobre la DB.
+5. `npm run lint` y `npm run build` siguen verdes (el spec de DB no toca código de la app).
+6. Commit + PR en la rama del spec.
+
+### Convenciones de schema (aplican salvo que el spec justifique lo contrario)
+
+- PK `id uuid primary key default gen_random_uuid()` (usa `extensions.pgcrypto`, ya instalada).
+- Timestamps: `created_at timestamptz not null default now()`. `updated_at` solo cuando haya caso de uso real y su trigger `set_updated_at` correspondiente.
+- Identificadores, enums y códigos en **inglés** en DB. La UI traduce a español (SPEC 06).
+- RLS **activado por defecto** en tablas nuevas (lo fuerza el proyecto). Policies restrictivas por defecto; abrir `select` a `authenticated` es aceptable mientras no exista auth. Endurecer cuando llegue el spec de `users`/auth (multi-tenant por `daycare_id`).
+- Seeds fundación (ej. "Guardería Sala Soles" + sus salas) viajan **dentro de la migración**, no en `supabase/seed.sql` separado — son parte de la unidad lógica y garantizan reproducibilidad.
+- Cada spec justifica en su sección **Decisions** cualquier desviación de estas convenciones.
 
 ## Clean code
 
