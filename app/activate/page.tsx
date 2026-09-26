@@ -28,7 +28,7 @@ export default function ActivatePage() {
           Bienvenida a OpenDayCare
         </h1>
         <p className="mt-2 mb-[26px] text-[15.5px] leading-[1.55] text-muted-strong">
-          Te invitaron a seguir el día de tu hijo. Creá tu contraseña para
+          Te invitaron a seguir el día de tu hijo. Crea tu contraseña para
           activar la cuenta.
         </p>
 
@@ -112,7 +112,7 @@ export default function ActivatePage() {
         </button>
 
         <p className="mt-[22px] mb-0 text-center text-[14.5px] text-muted-strong">
-          ¿Ya tenés cuenta?{" "}
+          ¿Ya tienes cuenta?{" "}
           <Link href="/login" className="font-extrabold text-accent-deep">
             Iniciar sesión
           </Link>

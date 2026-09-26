@@ -27,7 +27,7 @@ export default function FeedPage() {
             C
           </span>
           <span className="min-w-0 flex-1 text-[15px] text-muted">
-            Compartí un momento…
+            Comparte un momento…
           </span>
           <span className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent-hot">
             <CameraIcon className="h-[19px] w-[19px]" />

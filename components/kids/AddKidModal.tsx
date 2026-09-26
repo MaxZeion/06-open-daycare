@@ -187,7 +187,7 @@ export function AddKidModal({ open, addedCount, onClose, onSave }: AddKidModalPr
             />
             {showNameError ? (
               <p className="mt-2 text-xs font-bold text-field-error">
-                Ingresá nombre y apellido (mínimo 3 caracteres en el nombre).
+                Introduce nombre y apellido (mínimo 3 caracteres en el nombre).
               </p>
             ) : null}
           </div>
@@ -211,7 +211,7 @@ export function AddKidModal({ open, addedCount, onClose, onSave }: AddKidModalPr
               {showDateError ? (
                 <p className="mt-2 text-xs font-bold text-field-error">
                   {birthDate.length < 10
-                    ? "Completá la fecha (dd/mm/aaaa)."
+                    ? "Completa la fecha (dd/mm/aaaa)."
                     : "Fecha no válida."}
                 </p>
               ) : null}
