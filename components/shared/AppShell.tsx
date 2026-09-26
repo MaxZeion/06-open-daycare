@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { ReactNode } from "react";
+import { useFeed } from "../feed/FeedContext";
 import { Sidebar } from "./Sidebar";
 import type { SectionId } from "./Sidebar";
 import { MenuIcon, PlusIcon, SunIcon } from "./icons";
@@ -14,6 +15,7 @@ export function AppShell({
   active?: SectionId;
 }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const { openModal } = useFeed();
 
   return (
     <div className="flex h-dvh">
@@ -58,6 +60,7 @@ export function AppShell({
 
         <button
           type="button"
+          onClick={openModal}
           className="fixed bottom-6 right-6 z-30 flex items-center gap-2 rounded-full bg-[linear-gradient(180deg,var(--brand-deep-soft),var(--brand-deep))] px-5 py-3.5 text-[14.5px] font-extrabold text-white shadow-cta md:hidden"
         >
           <PlusIcon className="h-[17px] w-[17px]" />
