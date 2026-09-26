@@ -4,15 +4,11 @@ import {
   MessageIcon,
   PhotoIcon,
 } from "../shared/icons";
-import type { Post, PostKind } from "./mockPosts";
-
-const KIND_STYLE: Record<PostKind, string> = {
-  logro: "bg-badge-logro-bg text-badge-logro-fg",
-  actividad: "bg-badge-actividad-bg text-badge-actividad-fg",
-  anuncio: "bg-badge-anuncio-bg text-badge-anuncio-fg",
-};
+import { KIND_META } from "./mockPosts";
+import type { Post } from "./mockPosts";
 
 export function PostCard({ post }: { post: Post }) {
+  const kind = KIND_META[post.kind];
   return (
     <article className="rounded-[20px] border border-border bg-surface px-[22px] py-5 shadow-card">
       <header className="mb-3.5 flex items-center gap-3">
@@ -20,7 +16,7 @@ export function PostCard({ post }: { post: Post }) {
           className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full font-display text-[17px] font-semibold"
           style={{ backgroundColor: post.author.bg, color: post.author.fg }}
         >
-          {post.kind === "anuncio" ? (
+          {post.author.initials === "" ? (
             <MegaphoneIcon className="h-5 w-5" />
           ) : (
             post.author.initials
@@ -35,11 +31,12 @@ export function PostCard({ post }: { post: Post }) {
           </p>
         </div>
         <div
-          className={`flex items-center gap-[7px] rounded-full px-3 py-1.5 ${KIND_STYLE[post.kind]}`}
+          className="flex items-center gap-[7px] rounded-full px-3 py-1.5"
+          style={{ backgroundColor: kind.bg, color: kind.fg }}
         >
           <span className="h-2 w-2 rounded-full bg-current" />
           <span className="text-xs font-extrabold tracking-[0.5px]">
-            {post.kind.toUpperCase()}
+            {kind.label}
           </span>
         </div>
       </header>
