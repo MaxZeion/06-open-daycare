@@ -1,10 +1,11 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { AppShell } from "../../../components/shared/AppShell";
 import { ArrowLeftIcon } from "../../../components/shared/icons";
-import { KIDS } from "../../../components/kids/mockKids";
-import type { Kid } from "../../../components/kids/mockKids";
-import { ProfileClient } from "./ProfileClient";
 import { getCurrentUser } from "@/utils/supabase/auth";
+import { createClient } from "@/utils/supabase/server";
+import { mapChild, type ChildrenRow, type RoomOption } from "@/components/kids/mapKid";
+import { ProfileClient } from "./ProfileClient";
 
 function NotFound() {
   return (
@@ -33,12 +34,39 @@ export default async function KidProfilePage({
 }) {
   const { id } = await params;
   await getCurrentUser(`/kids/${id}`);
-  const kid: Kid | undefined = KIDS.find((item) => item.id === id);
+
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+
+  const [{ data: childrenData }, { data: roomsData }] = await Promise.all([
+    supabase
+      .from("children")
+      .select("*")
+      .eq("status", "active")
+      .order("created_at", { ascending: false }),
+    supabase.from("rooms").select("id, name").order("name"),
+  ]);
+
+  const rooms: RoomOption[] =
+    (roomsData as { id: string; name: string }[] | null)?.map((room) => ({
+      id: room.id,
+      name: room.name,
+    })) ?? [];
+
+  const kids = ((childrenData as ChildrenRow[] | null) ?? []).map((row) =>
+    mapChild(row, rooms),
+  );
+
+  const kid = kids.find((item) => item.id === id) ?? null;
 
   return (
-    <AppShell active="kids">
+    <AppShell active="kids" kids={kids}>
       <div className="mx-auto w-full max-w-[820px] px-5 pt-8 pb-24 md:px-10 md:pt-[34px] md:pb-20">
-        {kid ? <ProfileClient kid={kid} /> : <NotFound />}
+        {kid ? (
+          <ProfileClient kid={kid} backHref={`/kids?room=${kid.roomId}`} />
+        ) : (
+          <NotFound />
+        )}
       </div>
     </AppShell>
   );

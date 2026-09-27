@@ -1,23 +1,42 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { PlusIcon, SearchIcon } from "../../components/shared/icons";
 import { KidCard } from "../../components/kids/KidCard";
 import { AddKidModal } from "../../components/kids/AddKidModal";
-import { KIDS, type Kid } from "../../components/kids/mockKids";
+import { RoomTabs } from "../../components/kids/RoomTabs";
+import type { Kid } from "../../components/kids/mockKids";
+import type { RoomOption } from "../../components/kids/mapKid";
 
-export function KidsPageClient() {
+type KidsPageClientProps = {
+  rooms: RoomOption[];
+  kids: Kid[];
+  selectedRoomId: string;
+};
+
+export function KidsPageClient({ rooms, kids, selectedRoomId }: KidsPageClientProps) {
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const [addOpen, setAddOpen] = useState(false);
-  const [addedKids, setAddedKids] = useState<Kid[]>([]);
 
-  const allKids = [...addedKids, ...KIDS];
+  const counts = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const room of rooms) {
+      map[room.id] = 0;
+    }
+    for (const kid of kids) {
+      map[kid.roomId] = (map[kid.roomId] ?? 0) + 1;
+    }
+    return map;
+  }, [rooms, kids]);
+
+  const roomKids = kids.filter((kid) => kid.roomId === selectedRoomId);
   const term = query.trim().toLowerCase();
-  const filtered = allKids.filter((kid) => kid.name.toLowerCase().includes(term));
+  const filtered = roomKids.filter((kid) => kid.name.toLowerCase().includes(term));
 
-  function handleAddKid(kid: Kid) {
-    setAddedKids((current) => [kid, ...current]);
-    setAddOpen(false);
+  function handleSelectRoom(roomId: string) {
+    router.replace(roomId ? `/kids?room=${roomId}` : "/kids");
   }
 
   return (
@@ -42,6 +61,13 @@ export function KidsPageClient() {
           </button>
         </header>
 
+        <RoomTabs
+          rooms={rooms}
+          counts={counts}
+          selectedId={selectedRoomId}
+          onSelect={handleSelectRoom}
+        />
+
         <div className="mb-[22px] flex items-center gap-3 rounded-[14px] border border-border bg-surface px-4 py-3">
           <SearchIcon className="h-[18px] w-[18px] shrink-0 text-muted" />
           <input
@@ -52,14 +78,6 @@ export function KidsPageClient() {
           />
         </div>
 
-        <div className="mb-3.5 flex items-center gap-3">
-          <span className="text-[12.5px] font-extrabold tracking-[0.8px] text-ink">
-            SALA SOLES
-          </span>
-          <span className="text-[13px] text-muted">{allKids.length} niños</span>
-          <span className="h-px flex-1 bg-divider" />
-        </div>
-
         {filtered.length > 0 ? (
           <div className="grid grid-cols-1 gap-[14px] md:grid-cols-2">
             {filtered.map((kid) => (
@@ -68,17 +86,20 @@ export function KidsPageClient() {
           </div>
         ) : (
           <p className="rounded-[14px] border border-border bg-surface px-4 py-6 text-center text-[14px] text-muted">
-            No se encontraron niños.
+            {roomKids.length === 0
+              ? "Aún no hay niños en esta sala."
+              : "No se encontraron niños."}
           </p>
         )}
       </div>
 
-      <AddKidModal
-        open={addOpen}
-        addedCount={addedKids.length}
-        onClose={() => setAddOpen(false)}
-        onSave={handleAddKid}
-      />
+      {addOpen ? (
+        <AddKidModal
+          rooms={rooms}
+          defaultRoomId={selectedRoomId}
+          onClose={() => setAddOpen(false)}
+        />
+      ) : null}
     </>
   );
 }

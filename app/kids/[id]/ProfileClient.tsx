@@ -68,9 +68,19 @@ function ParentsColumn({
   );
 }
 
-export function ProfileClient({ kid }: { kid: Kid }) {
+export function ProfileClient({
+  kid,
+  backHref = "/kids",
+}: {
+  kid: Kid;
+  backHref?: string;
+}) {
   const [parents, setParents] = useState<Parent[]>(kid.parents ?? []);
   const [linkOpen, setLinkOpen] = useState(false);
+
+  const allergyBoxNotes = [kid.allergyNotes, kid.medicalNotes]
+    .filter((note): note is string => Boolean(note))
+    .join(" · ");
 
   function handleSubmit(parent: Parent) {
     setParents((prev) => [...prev, parent]);
@@ -80,7 +90,7 @@ export function ProfileClient({ kid }: { kid: Kid }) {
   return (
     <>
       <Link
-        href="/kids"
+        href={backHref}
         className="mb-5 flex items-center gap-2 text-[14px] font-bold text-muted-strong"
       >
         <ArrowLeftIcon className="h-[18px] w-[18px]" />
@@ -112,7 +122,7 @@ export function ProfileClient({ kid }: { kid: Kid }) {
             </button>
           </div>
 
-          {kid.allergyNotes ? <AllergyBox notes={kid.allergyNotes} /> : null}
+          {allergyBoxNotes ? <AllergyBox notes={allergyBoxNotes} /> : null}
 
           <InfoCard kid={kid} />
         </div>

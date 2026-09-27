@@ -3,12 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ImagePlusIcon, PhotoIcon } from "../shared/icons";
-import { KIDS } from "../kids/mockKids";
 import type { Kid } from "../kids/mockKids";
 import type { PostKind } from "./mockPosts";
 
 type NewPostModalProps = {
   open: boolean;
+  kids: Kid[];
   onClose: () => void;
   publish: (input: {
     kind: PostKind;
@@ -45,7 +45,7 @@ function kindChipClasses(value: PostKind, active: boolean): string {
   ].join(" ");
 }
 
-export function NewPostModal({ open, onClose, publish }: NewPostModalProps) {
+export function NewPostModal({ open, kids, onClose, publish }: NewPostModalProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [allRoom, setAllRoom] = useState(false);
   const [kind, setKind] = useState<PostKind>("actividad");
@@ -121,13 +121,13 @@ export function NewPostModal({ open, onClose, publish }: NewPostModalProps) {
     publish({
       kind,
       body,
-      kids: KIDS.filter((kid) => selectedIds.includes(kid.id)),
+      kids: kids.filter((kid) => selectedIds.includes(kid.id)),
       allRoom,
     });
     resetFields();
   }
 
-  const visibleKids = allRoom ? [] : KIDS;
+  const visibleKids = allRoom ? [] : kids;
 
   return createPortal(
     <div
@@ -208,6 +208,11 @@ export function NewPostModal({ open, onClose, publish }: NewPostModalProps) {
               >
                 Toda la sala
               </button>
+              {!allRoom && kids.length === 0 ? (
+                <p className="w-full text-[13.5px] text-muted">
+                  Aún no hay niños dados de alta.
+                </p>
+              ) : null}
             </div>
             {showRecipientError ? (
               <p className="mt-2 text-xs font-bold text-field-error">
