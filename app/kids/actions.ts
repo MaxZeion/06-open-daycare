@@ -4,15 +4,12 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
 import { parseSpanishDate } from "@/components/kids/dateMask";
-import { textToTags } from "@/components/kids/mapKid";
+import { isUuid, textToTags } from "@/components/kids/mapKid";
 
 export interface AddKidState {
   error?: string;
   ok?: boolean;
 }
-
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function toIsoDate(date: Date): string {
   const year = date.getFullYear();
@@ -40,7 +37,7 @@ export async function addKid(
     return { error: "Fecha no válida." };
   }
 
-  if (!UUID_PATTERN.test(roomId)) {
+  if (!isUuid(roomId)) {
     return { error: "Selecciona una sala válida." };
   }
 

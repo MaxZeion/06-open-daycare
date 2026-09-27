@@ -28,6 +28,13 @@ const TAG_TO_ALLERGY: Record<string, AllergyTag> = {
   lactose: "lactosa",
 };
 
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export function isUuid(value: string): boolean {
+  return UUID_PATTERN.test(value);
+}
+
 function hashUuid(id: string): number {
   let hash = 0;
   for (let i = 0; i < id.length; i += 1) {
