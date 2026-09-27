@@ -53,7 +53,13 @@ function nowTime(): string {
   return `${hh}:${mm}`;
 }
 
-export function FeedProvider({ children }: { children: ReactNode }) {
+export function FeedProvider({
+  kids,
+  children,
+}: {
+  kids: Kid[];
+  children: ReactNode;
+}) {
   const [posts, setPosts] = useState<Post[]>(POSTS);
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -98,7 +104,12 @@ export function FeedProvider({ children }: { children: ReactNode }) {
   return (
     <FeedContext.Provider value={value}>
       {children}
-      <NewPostModal open={modalOpen} onClose={closeModal} publish={publish} />
+      <NewPostModal
+        open={modalOpen}
+        kids={kids}
+        onClose={closeModal}
+        publish={publish}
+      />
     </FeedContext.Provider>
   );
 }
