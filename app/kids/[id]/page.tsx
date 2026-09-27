@@ -4,6 +4,7 @@ import { ArrowLeftIcon } from "../../../components/shared/icons";
 import { KIDS } from "../../../components/kids/mockKids";
 import type { Kid } from "../../../components/kids/mockKids";
 import { ProfileClient } from "./ProfileClient";
+import { getCurrentUser } from "@/utils/supabase/auth";
 
 function NotFound() {
   return (
@@ -31,6 +32,7 @@ export default async function KidProfilePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  await getCurrentUser(`/kids/${id}`);
   const kid: Kid | undefined = KIDS.find((item) => item.id === id);
 
   return (
