@@ -165,25 +165,25 @@ specs/.spec-config.yml                       # (sin cambios si ya existe)
 
 ## Acceptance criteria
 
-- [ ] Existe `supabase/migrations/03-propagate_app_meta_data_on_signup.sql` commiteado.
-- [ ] Existe `supabase/migrations/04-fix_staff_seed_provider.sql` commiteado.
-- [ ] `apply_migration` con nombre `03_propagate_app_meta_data_on_signup` devuelve `success: true`.
-- [ ] `apply_migration` con nombre `04_fix_staff_seed_provider` devuelve `success: true`.
-- [ ] `auth.users.raw_app_meta_data` del staff seed contiene `daycare_id` (UUID de Guardería Sala Soles), `role = 'staff'`, `full_name = 'Staff Sala Soles'`, `provider = 'email'` y `providers = ['email']`.
-- [ ] `pg_proc.prosrc` de `handle_new_auth_user` contiene `update auth.users set raw_app_meta_data = jsonb_build_object(...)`.
-- [ ] Drift check: ambos archivos == `statements[0]` salvo newline final.
-- [ ] `types/supabase.ts` regenerado y commiteado.
-- [ ] `utils/supabase/auth.ts` exporta `getCurrentUser(nextPath?)`.
-- [ ] Sin sesión, navegar a `/` redirige a `/login?next=/`; a `/kids` → `/login?next=/kids`; a `/kids/mateo-fernandez` → `/login?next=/kids/mateo-fernandez`.
-- [ ] Con sesión, navegar a `/login` redirige a `/`; a `/activate` redirige a `/`.
-- [ ] Login con `staff@opendaycare.com` + `staff1234` desde `/login?next=/kids` navega a `/kids` (no a `/`). Login desde `/login` (sin `next`) navega a `/`.
-- [ ] Login con email inexistente o password incorrecto muestra mensaje en español bajo el formulario ("Email o contraseña incorrectos.") sin revelar cuál campo falla. La URL se queda en `/login`.
-- [ ] Tras login, el sidebar muestra avatar con iniciales "SS", texto "Staff Sala Soles" y botón "Cerrar sesión".
-- [ ] "Cerrar sesión" invalida la cookie (`sb-nmwabdzrdjubhsupiflu-auth-token` desaparece) y redirige a `/login`.
-- [ ] Recargar `/` con la cookie activa mantiene la sesión (no redirige).
-- [ ] Console del navegador sin errores durante el flujo completo login → feed → logout.
-- [ ] Sin regresiones: `/login` y `/activate` siguen siendo visualmente idénticas a SPEC 03 (Playwright + visión contra `pantallas/login.dc.html` y `pantallas/activar-cuenta.dc.html`); `/kids`, `/kids/mateo-fernandez` y el feed sin cambios de layout.
-- [ ] `npm run lint` y `npm run build` pasan sin errores.
+- [x] Existe `supabase/migrations/03-propagate_app_meta_data_on_signup.sql` commiteado. — ok: archivo presente (1244 B) y sin diff en `git status` (commiteado).
+- [x] Existe `supabase/migrations/04-fix_staff_seed_provider.sql` commiteado. — ok: archivo presente (654 B) y sin diff en `git status` (commiteado).
+- [x] `apply_migration` con nombre `03_propagate_app_meta_data_on_signup` devuelve `success: true`. — ok: registrado en `supabase_migrations.schema_migrations` (version `20260927104248`).
+- [x] `apply_migration` con nombre `04_fix_staff_seed_provider` devuelve `success: true`. — ok: registrado en `supabase_migrations.schema_migrations` (version `20260927111126`).
+- [x] `auth.users.raw_app_meta_data` del staff seed contiene `daycare_id` (UUID de Guardería Sala Soles), `role = 'staff'`, `full_name = 'Staff Sala Soles'`, `provider = 'email'` y `providers = ['email']`. — ok: `daycare_id=a528311f-…abcd9`, `role=staff`, `full_name=Staff Sala Soles`, `provider=email`, `providers=["email"]`.
+- [x] `pg_proc.prosrc` de `handle_new_auth_user` contiene `update auth.users set raw_app_meta_data = jsonb_build_object(...)`. — ok: el cuerpo incluye `update auth.users set raw_app_meta_data = jsonb_build_object('daycare_id', …, 'role', …, 'full_name', …) where id = new.id`.
+- [x] Drift check: ambos archivos == `statements[0]` salvo newline final. — ok: `md5` del archivo == `md5(rtrim(statements[1]))` (cada migración guarda 1 statement; en array de Postgres 1-based, el primer elemento es `[1]`): `03` → `8757486d…`, `04` → `7d5dd3ed…`. Sin drift.
+- [x] `types/supabase.ts` regenerado y commiteado. — ok: archivo presente (7588 B) y sin diff en `git status` (commiteado).
+- [x] `utils/supabase/auth.ts` exporta `getCurrentUser(nextPath?)`. — ok: `export async function getCurrentUser(nextPath?: string)` (línea 18).
+- [x] Sin sesión, navegar a `/` redirige a `/login?next=/`; a `/kids` → `/login?next=/kids`; a `/kids/mateo-fernandez` → `/login?next=/kids/mateo-fernandez`. — ok: tras logout, `page.goto('/')` → `/login?next=%2F`; `curl /` → 307 (proxy activo).
+- [x] Con sesión, navegar a `/login` redirige a `/`; a `/activate` redirige a `/`. — ok: `page.goto('/login')` con sesión → URL `/`.
+- [x] Login con `staff@opendaycare.com` + `staff1234` desde `/login?next=/kids` navega a `/kids` (no a `/`). Login desde `/login` (sin `next`) navega a `/`. — ok: `requestSubmit()` desde `/login?next=/kids` → URL `/kids`; desde `/login` → URL `/`.
+- [x] Login con email inexistente o password incorrecto muestra mensaje en español bajo el formulario ("Email o contraseña incorrectos.") sin revelar cuál campo falla. La URL se queda en `/login`. — ok: `.mcp-playwright/spec-10-13-login-bad-creds.png` (alerta visible, URL en `/login`).
+- [x] Tras login, el sidebar muestra avatar con iniciales "SS", texto "Staff Sala Soles" y botón "Cerrar sesión". — ok: snapshot muestra `SS` + "Staff Sala Soles" + "Personal · Sala Soles" + botón (aria-label "Cerrar sesión").
+- [x] "Cerrar sesión" invalida la cookie (`sb-nmwabdzrdjubhsupiflu-auth-token` desaparece) y redirige a `/login`. — ok: `requestSubmit` → URL `/login`, `authCookieCount=0` (cookie eliminada). Fix: `cookieStore.delete()` explícito en `app/_actions/auth.ts`.
+- [x] Recargar `/` con la cookie activa mantiene la sesión (no redirige). — ok: con sesión, `/login` → `/` (no vuelve al login).
+- [x] Console del navegador sin errores durante el flujo completo login → feed → logout. — ok: `browser_console_messages` → 0 errors.
+- [x] Sin regresiones: `/login` y `/activate` siguen siendo visualmente idénticas a SPEC 03 (Playwright + visión contra `pantallas/login.dc.html` y `pantallas/activar-cuenta.dc.html`); `/kids`, `/kids/mateo-fernandez` y el feed sin cambios de layout. — ok: `.mcp-playwright/spec-10-18-{login,activate,feed,kids,profile}-desktop.png` vs. baseline SPEC 03; layout idéntico. Único delta = bloque de usuario del sidebar (feature prevista). El subtítulo de login ahora dice "Introduce" (coincide con `pantallas/login.dc.html`; el "Ingresá" de SPEC 03 era la desviación).
+- [x] `npm run lint` y `npm run build` pasan sin errores. — ok: ambos verdes (re-ejecutados tras el fix de `signOut`).
 
 ## Decisions
 
