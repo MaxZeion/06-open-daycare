@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { AppShell } from "../../components/shared/AppShell";
 import { PlusIcon, SearchIcon } from "../../components/shared/icons";
 import { KidCard } from "../../components/kids/KidCard";
 import { AddKidModal } from "../../components/kids/AddKidModal";
@@ -22,7 +21,7 @@ export function KidsPageClient() {
   }
 
   return (
-    <AppShell active="kids">
+    <>
       <div className="mx-auto w-full max-w-[880px] px-5 pt-8 pb-24 md:px-10 md:pt-[34px] md:pb-20">
         <header className="mb-[22px] flex items-end justify-between gap-4">
           <div>
@@ -80,6 +79,6 @@ export function KidsPageClient() {
         onClose={() => setAddOpen(false)}
         onSave={handleAddKid}
       />
-    </AppShell>
+    </>
   );
 }

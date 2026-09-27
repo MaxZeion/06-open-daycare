@@ -1,16 +1,9 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { createClient } from "./server";
+import type { CurrentUser, CurrentUserRole } from "./types";
 
-export type CurrentUserRole = "staff" | "parent" | "admin";
-
-export interface CurrentUser {
-  userId: string;
-  email: string | null;
-  daycareId: string;
-  role: CurrentUserRole;
-  fullName: string;
-}
+export type { CurrentUser, CurrentUserRole } from "./types";
 
 interface AppMetadata {
   daycare_id?: string;
