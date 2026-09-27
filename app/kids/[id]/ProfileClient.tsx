@@ -75,17 +75,12 @@ export function ProfileClient({
   kid: Kid;
   backHref?: string;
 }) {
-  const [parents, setParents] = useState<Parent[]>(kid.parents ?? []);
+  const parents = kid.parents ?? [];
   const [linkOpen, setLinkOpen] = useState(false);
 
   const allergyBoxNotes = [kid.allergyNotes, kid.medicalNotes]
     .filter((note): note is string => Boolean(note))
     .join(" · ");
-
-  function handleSubmit(parent: Parent) {
-    setParents((prev) => [...prev, parent]);
-    setLinkOpen(false);
-  }
 
   return (
     <>
@@ -135,11 +130,9 @@ export function ProfileClient({
 
       {linkOpen ? (
         <LinkParentModal
-          open={linkOpen}
           kidName={kid.name}
-          existingParentsCount={parents.length}
+          childId={kid.id}
           onClose={() => setLinkOpen(false)}
-          onSubmit={handleSubmit}
         />
       ) : null}
     </>

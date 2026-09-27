@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useActionState, useRef, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
 import { CloseIcon, InfoCircleIcon, SendIcon } from "../shared/icons";
-import { AVATAR_PALETTE, type Parent } from "./mockKids";
+import { inviteParent, type InviteParentState } from "../../app/kids/actions";
 
 const RELACIONES = ["Mamá", "Papá", "Tutor/a"] as const;
 type Relacion = (typeof RELACIONES)[number];
@@ -13,51 +13,40 @@ const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 const FIELD_CLASSES =
   "w-full rounded-[14px] border-[1.5px] bg-field-bg px-4 py-[13px] text-[15px] text-ink outline-none placeholder:text-field-placeholder";
 
-function generateInviteCode(): string {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  let code = "";
-  for (let i = 0; i < 5; i += 1) {
-    code += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return code;
-}
+const INITIAL_STATE: InviteParentState = {};
 
 export type LinkParentModalProps = {
-  open: boolean;
   kidName: string;
-  existingParentsCount: number;
+  childId: string;
   onClose: () => void;
-  onSubmit: (parent: Parent) => void;
 };
 
 export function LinkParentModal({
-  open,
   kidName,
-  existingParentsCount,
+  childId,
   onClose,
-  onSubmit,
 }: LinkParentModalProps) {
+  const [state, formAction, isPending] = useActionState<
+    InviteParentState,
+    FormData
+  >(inviteParent, INITIAL_STATE);
+  const [isTransitioning, startTransition] = useTransition();
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [relacion, setRelacion] = useState<Relacion>("Mamá");
   const [attempted, setAttempted] = useState(false);
-  const [inviteCode] = useState(() => generateInviteCode());
+  const closedOnSuccess = useRef(false);
 
   useEffect(() => {
-    if (!open) {
-      return;
-    }
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = previousOverflow;
     };
-  }, [open]);
+  }, []);
 
   useEffect(() => {
-    if (!open) {
-      return;
-    }
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
         onClose();
@@ -67,11 +56,14 @@ export function LinkParentModal({
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [open, onClose]);
+  }, [onClose]);
 
-  if (!open) {
-    return null;
-  }
+  useEffect(() => {
+    if (state.ok && !closedOnSuccess.current) {
+      closedOnSuccess.current = true;
+      onClose();
+    }
+  }, [state, onClose]);
 
   const trimmedName = name.trim();
   const nameParts = trimmedName.split(/\s+/).filter(Boolean);
@@ -81,24 +73,18 @@ export function LinkParentModal({
   const emailInvalid = !EMAIL_RE.test(email.trim());
   const showNameError = attempted && nameInvalid;
   const showEmailError = attempted && emailInvalid;
+  const saving = isPending || isTransitioning;
 
-  function handleSubmit() {
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     if (nameInvalid || emailInvalid) {
       setAttempted(true);
       return;
     }
-    const avatar =
-      AVATAR_PALETTE[existingParentsCount % AVATAR_PALETTE.length];
-    const parent: Parent = {
-      name: trimmedName,
-      initials: trimmedName.charAt(0).toUpperCase(),
-      bg: avatar.bg,
-      fg: avatar.fg,
-      role: relacion,
-      status: "pendiente",
-      note: "invitación enviada",
-    };
-    onSubmit(parent);
+    const formData = new FormData(event.currentTarget);
+    startTransition(() => {
+      formAction(formData);
+    });
   }
 
   return createPortal(
@@ -130,7 +116,13 @@ export function LinkParentModal({
           </button>
         </header>
 
-        <div className="overflow-y-auto px-[26px] py-[22px]">
+        <form
+          onSubmit={handleSubmit}
+          className="overflow-y-auto px-[26px] py-[22px]"
+        >
+          <input type="hidden" name="child_id" value={childId} />
+          <input type="hidden" name="relationship" value={relacion} />
+
           <div className="mb-[20px] flex gap-[11px] rounded-[14px] bg-info-banner-bg px-4 py-[13px]">
             <InfoCircleIcon className="mt-[1px] h-5 w-5 flex-none text-info-banner-icon" />
             <span className="text-[13.5px] leading-[1.45] text-info-banner-fg">
@@ -144,6 +136,7 @@ export function LinkParentModal({
               NOMBRE DEL PADRE/MADRE
             </div>
             <input
+              name="full_name"
               value={name}
               onChange={(event) => setName(event.target.value)}
               placeholder="Ej. Diego Fernández"
@@ -165,6 +158,7 @@ export function LinkParentModal({
             </div>
             <input
               type="email"
+              name="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               placeholder="correo@ejemplo.com"
@@ -206,27 +200,22 @@ export function LinkParentModal({
             </div>
           </div>
 
-          <div className="mb-[20px] rounded-[16px] border-[1.5px] border-dashed border-code-box-border bg-code-box-bg px-[18px] py-[18px] text-center">
-            <div className="mb-2 text-xs font-extrabold tracking-[0.7px] text-code-title">
-              CÓDIGO DE INVITACIÓN
-            </div>
-            <div className="font-display text-[34px] font-semibold tracking-[7px] text-code-text">
-              {inviteCode}
-            </div>
-            <div className="mt-[6px] text-[13px] text-code-sub">
-              Vence en 7 días
-            </div>
-          </div>
-
           <button
-            type="button"
-            onClick={handleSubmit}
-            className="flex w-full items-center justify-center gap-[9px] rounded-[14px] bg-gradient-to-b from-brand-deep-soft to-brand-deep py-[14px] text-[15.5px] font-extrabold text-white shadow-cta"
+            type="submit"
+            disabled={saving}
+            aria-busy={saving}
+            className="flex w-full items-center justify-center gap-[9px] rounded-[14px] bg-gradient-to-b from-brand-deep-soft to-brand-deep py-[14px] text-[15.5px] font-extrabold text-white shadow-cta disabled:opacity-60"
           >
             <SendIcon className="h-[19px] w-[19px]" />
-            Enviar invitación
+            {saving ? "Enviando…" : "Enviar invitación"}
           </button>
-        </div>
+
+          {state.error ? (
+            <p className="mt-[14px] text-center text-xs font-bold text-field-error">
+              {state.error}
+            </p>
+          ) : null}
+        </form>
       </div>
     </div>,
     document.body
