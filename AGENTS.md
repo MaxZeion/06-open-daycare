@@ -42,6 +42,27 @@ OpenDayCare — app de guardería. App Router en `app/` (aún es el scaffold de 
 - `supabase` (`.agents/skills/supabase/`) — carga cualquier tarea que involucre Supabase: Database, Auth, Edge Functions, Realtime, Storage, RLS, CLI, integración con Next.js (`@supabase/ssr`), troubleshooting y logs.
 - `supabase-postgres-best-practices` (`.agents/skills/supabase-postgres-best-practices/`) — carga ANTES de escribir/cambiar algo que viva en la DB: tablas, migraciones, RLS, índices, funciones, queries lentas.
 
+## Stack de Supabase en la app (Next.js)
+
+Toda interacción con Supabase desde el código de la app va por estos paquetes. No importar `supabase-js` directo en páginas/componentes — solo a través de los helpers de `utils/supabase/`.
+
+- **Paquetes:** `@supabase/supabase-js` (cliente) y `@supabase/ssr` (integración cookie-based para SSR). Versiones pinneadas en `package.json` + `package-lock.json` (no upgradear a mano).
+- **Variables de entorno** (en `.env.local`, ignorado por git):
+  - `NEXT_PUBLIC_SUPABASE_URL` — URL del proyecto (`https://<ref>.supabase.co`).
+  - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` — clave moderna con prefijo `sb_publishable_…`. Reemplaza a la legacy `anon` key; es segura para frontend. **Nunca** exponer la `service_role` / `secret` key — vive solo en el MCP y en jobs servidor-side confiables.
+- **Helpers** (en `utils/supabase/`):
+  - `client.ts` — `createClient()` para Client Components (usa `createBrowserClient`, singleton interno).
+  - `server.ts` — `createClient(cookieStore)` para Server Components, Server Actions y Route Handlers. Pasarle `await cookies()` de `next/headers`. El `setAll` está envuelto en `try/catch` porque los Server Components no pueden escribir cookies (lo hace el proxy).
+  - `middleware.ts` — helper `createClient(request)` que arma el cliente + response, llama `await supabase.auth.getClaims()` (refresco del token) y aplica los cache headers `Cache-Control` / `Expires` / `Pragma` que entrega `@supabase/ssr` en el segundo argumento de `setAll`. Devuelve `{ supabase, supabaseResponse }`.
+- **Proxy entry point** — `proxy.ts` en la raíz exporta la función `proxy(request)` (Next.js 16 renombró `middleware.ts` → `proxy.ts`, ver `node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/proxy.md`). Llama al helper de arriba y devuelve el `supabaseResponse`. Matcher por defecto excluye `_next/static`, `_next/image`, `favicon.ico` e imágenes para no correr en assets.
+- **Reglas de uso:**
+  - No crear instancias de `createBrowserClient` / `createServerClient` sueltas en páginas: siempre pasar por los helpers.
+  - Crear un cliente nuevo por request en el servidor (no singleton). En el cliente `createBrowserClient` ya es singleton.
+  - Para identificar al usuario en servidor usar `supabase.auth.getClaims()` (verifica firma del JWT, no falsificable desde la cookie). **Nunca** usar `getSession()` para decisiones de autorización — su `user` viene del cookie sin revalidar. `getUser()` solo cuando hace falta un record fresco del Auth server.
+  - Multi-tenant: las policies usan `auth.uid()` contra `users.id`; el cruce con `daycare_id` ocurre en las policies. Hasta que llegue el spec de `users`/auth, `select` abierto a `authenticated` es aceptable (lo cubre RLS).
+- **Tipos TypeScript:** regenerar con `supabase_generate_typescript_types` del MCP cuando cambie el esquema (suele coincidir con un cambio en `supabase/migrations/`). Guardar el output en `types/supabase.ts` y evitar tipos inline en páginas.
+- **Cache:** cualquier response que escriba cookies (refresco de sesión) tiene que llevar `Cache-Control: private, no-store` o aplicar los cache headers del helper — sino un CDN puede servirle a otro usuario una sesión ajena.
+
 ## Spec Driven Development
 
 - /spec para espicificar las especificaciones
