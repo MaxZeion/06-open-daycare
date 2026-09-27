@@ -47,8 +47,8 @@ function ParentsColumn({
           PADRES VINCULADOS
         </div>
         <div className="flex flex-col gap-[14px]">
-          {parents.map((parent) => (
-            <ParentRow key={parent.name} parent={parent} />
+          {parents.map((parent, index) => (
+            <ParentRow key={`${parent.name}-${index}`} parent={parent} />
           ))}
           <button
             type="button"
@@ -70,12 +70,13 @@ function ParentsColumn({
 
 export function ProfileClient({
   kid,
+  parents,
   backHref = "/kids",
 }: {
   kid: Kid;
+  parents: Parent[];
   backHref?: string;
 }) {
-  const parents = kid.parents ?? [];
   const [linkOpen, setLinkOpen] = useState(false);
 
   const allergyBoxNotes = [kid.allergyNotes, kid.medicalNotes]

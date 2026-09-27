@@ -64,6 +64,10 @@ function hashUuid(id: string): number {
   return Math.abs(hash);
 }
 
+export function avatarFor(id: string): { bg: string; fg: string } {
+  return AVATAR_PALETTE[hashUuid(id) % AVATAR_PALETTE.length];
+}
+
 function isoToDate(iso: string): Date | null {
   const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
   if (!match) {

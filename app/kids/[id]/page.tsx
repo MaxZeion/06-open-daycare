@@ -4,8 +4,75 @@ import { AppShell } from "../../../components/shared/AppShell";
 import { ArrowLeftIcon } from "../../../components/shared/icons";
 import { getCurrentUser } from "@/utils/supabase/auth";
 import { createClient } from "@/utils/supabase/server";
-import { mapChild, type ChildrenRow, type RoomOption } from "@/components/kids/mapKid";
+import {
+  avatarFor,
+  mapChild,
+  relationshipToSpanish,
+  type ChildrenRow,
+  type Relationship,
+  type RoomOption,
+} from "@/components/kids/mapKid";
+import type { Parent } from "@/components/kids/mockKids";
 import { ProfileClient } from "./ProfileClient";
+
+type ParentLinkRow = {
+  id: string;
+  relationship: Relationship;
+  users: { id: string; full_name: string } | null;
+};
+
+type InvitationRow = {
+  id: string;
+  full_name: string;
+  relationship: Relationship;
+};
+
+async function fetchParents(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  childId: string,
+): Promise<Parent[]> {
+  const expiresNow = new Date().toISOString();
+  const [{ data: linksData }, { data: invitationsData }] = await Promise.all([
+    supabase
+      .from("parent_children")
+      .select("id, relationship, users ( id, full_name )")
+      .eq("child_id", childId)
+      .order("created_at", { ascending: true }),
+    supabase
+      .from("invitations")
+      .select("id, full_name, relationship")
+      .eq("child_id", childId)
+      .eq("status", "pending")
+      .gt("expires_at", expiresNow)
+      .order("created_at", { ascending: true }),
+  ]);
+
+  const active: Parent[] = ((linksData as ParentLinkRow[] | null) ?? []).map(
+    (link) => {
+      const name = link.users?.full_name ?? "Padre";
+      return {
+        name,
+        initials: name.charAt(0).toUpperCase(),
+        ...avatarFor(link.users?.id ?? link.id),
+        role: relationshipToSpanish(link.relationship),
+        status: "activa" as const,
+      };
+    },
+  );
+
+  const pending: Parent[] = ((invitationsData as InvitationRow[] | null) ?? []).map(
+    (invitation) => ({
+      name: invitation.full_name,
+      initials: invitation.full_name.charAt(0).toUpperCase(),
+      ...avatarFor(invitation.id),
+      role: relationshipToSpanish(invitation.relationship),
+      status: "pendiente" as const,
+      note: "invitación enviada",
+    }),
+  );
+
+  return [...active, ...pending];
+}
 
 function NotFound() {
   return (
@@ -59,11 +126,17 @@ export default async function KidProfilePage({
 
   const kid = kids.find((item) => item.id === id) ?? null;
 
+  const parents = kid ? await fetchParents(supabase, kid.id) : [];
+
   return (
     <AppShell active="kids" kids={kids}>
       <div className="mx-auto w-full max-w-[820px] px-5 pt-8 pb-24 md:px-10 md:pt-[34px] md:pb-20">
         {kid ? (
-          <ProfileClient kid={kid} backHref={`/kids?room=${kid.roomId}`} />
+          <ProfileClient
+            kid={kid}
+            parents={parents}
+            backHref={`/kids?room=${kid.roomId}`}
+          />
         ) : (
           <NotFound />
         )}
