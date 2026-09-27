@@ -37,3 +37,50 @@ $$;
 
 revoke execute on function public.email_exists(text) from public, anon;
 grant execute on function public.email_exists(text) to authenticated;
+
+-- Lectura de una invitación por código para el flujo de activación, que
+-- ocurre sin sesión (rol anon). SECURITY DEFINER: devuelve solo la fila
+-- cuyo código coincide; nunca la tabla completa.
+create function public.validate_invitation(p_code text)
+returns table (
+  invitation_id    uuid,
+  child_id         uuid,
+  parent_full_name text,
+  parent_email     text,
+  relationship     public.relationship_type,
+  status           public.invitation_status,
+  expires_at       timestamptz,
+  daycare_id       uuid
+)
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select i.id, i.child_id, i.full_name, i.email, i.relationship, i.status, i.expires_at, r.daycare_id
+    from public.invitations i
+    join public.children c on c.id = i.child_id
+    left join public.rooms r on r.id = c.room_id
+   where i.code = p_code;
+$$;
+
+revoke all on function public.validate_invitation(text) from public;
+grant execute on function public.validate_invitation(text) to anon, authenticated;
+
+-- Expiración lazy: marca como expired una invitación pending cuyo
+-- expires_at ya pasó. Llamada desde /activate (anon o authenticated).
+create function public.expire_invitation(p_invitation_id uuid)
+returns void
+language sql
+security definer
+set search_path = public
+as $$
+  update public.invitations
+     set status = 'expired'
+   where id = p_invitation_id
+     and status = 'pending'
+     and expires_at < now();
+$$;
+
+revoke all on function public.expire_invitation(uuid) from public;
+grant execute on function public.expire_invitation(uuid) to anon, authenticated;

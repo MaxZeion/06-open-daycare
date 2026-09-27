@@ -254,6 +254,23 @@ export type Database = {
     }
     Functions: {
       email_exists: { Args: { p_email: string }; Returns: boolean }
+      expire_invitation: {
+        Args: { p_invitation_id: string }
+        Returns: undefined
+      }
+      validate_invitation: {
+        Args: { p_code: string }
+        Returns: {
+          child_id: string
+          daycare_id: string
+          expires_at: string
+          invitation_id: string
+          parent_email: string
+          parent_full_name: string
+          relationship: Database["public"]["Enums"]["relationship_type"]
+          status: Database["public"]["Enums"]["invitation_status"]
+        }[]
+      }
     }
     Enums: {
       child_status: "active" | "archived"

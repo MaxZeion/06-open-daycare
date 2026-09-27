@@ -13,15 +13,15 @@ const CODE_RE = /^[A-Z0-9]{5}$/;
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 const MIN_PASSWORD_LENGTH = 8;
 
-interface InvitationLookup {
-  id: string;
+interface InvitationInfo {
+  invitation_id: string;
   child_id: string;
-  full_name: string;
-  email: string;
+  parent_full_name: string;
+  parent_email: string;
   relationship: Relationship;
   status: "pending" | "accepted" | "expired" | "cancelled";
   expires_at: string;
-  children: { rooms: { daycare_id: string } | null } | null;
+  daycare_id: string | null;
 }
 
 function authCookieNames(
@@ -68,15 +68,11 @@ export async function activate(
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
 
-  const { data: invitation } = await supabase
-    .from("invitations")
-    .select(
-      "id, child_id, full_name, email, relationship, status, expires_at, children ( rooms ( daycare_id ) )",
-    )
-    .eq("code", code)
-    .maybeSingle();
+  const { data: inviteRows } = await supabase.rpc("validate_invitation", {
+    p_code: code,
+  });
 
-  const invite = invitation as InvitationLookup | null;
+  const invite = ((inviteRows as InvitationInfo[] | null) ?? [])[0] ?? null;
   if (!invite) {
     return { error: "Código de invitación inválido." };
   }
@@ -86,21 +82,15 @@ export async function activate(
   }
 
   if (invite.status === "expired" || new Date(invite.expires_at) < new Date()) {
-    if (invite.status === "pending") {
-      await supabase
-        .from("invitations")
-        .update({ status: "expired" })
-        .eq("id", invite.id);
-    }
+    await supabase.rpc("expire_invitation", { p_invitation_id: invite.invitation_id });
     return { error: "El código ha expirado." };
   }
 
-  if (invite.email.toLowerCase() !== email) {
+  if (invite.parent_email.toLowerCase() !== email) {
     return { error: "El email no coincide con la invitación." };
   }
 
-  const daycareId = invite.children?.rooms?.daycare_id;
-  if (!daycareId) {
+  if (!invite.daycare_id) {
     return { error: "No se pudo completar la activación. Inténtalo de nuevo." };
   }
 
@@ -109,9 +99,9 @@ export async function activate(
     password,
     options: {
       data: {
-        daycare_id: daycareId,
+        daycare_id: invite.daycare_id,
         role: "parent",
-        full_name: invite.full_name,
+        full_name: invite.parent_full_name,
       },
     },
   });
@@ -141,7 +131,7 @@ export async function activate(
   const { error: acceptError } = await supabase
     .from("invitations")
     .update({ status: "accepted", accepted_at: new Date().toISOString() })
-    .eq("id", invite.id);
+    .eq("id", invite.invitation_id);
 
   if (acceptError) {
     return { error: "No se pudo completar la activación. Inténtalo de nuevo." };
