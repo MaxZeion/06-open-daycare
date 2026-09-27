@@ -150,13 +150,14 @@ specs/.spec-config.yml                       # (sin cambios si ya existe)
    - `select count(*) from auth.users where raw_app_meta_data ? 'daycare_id'` → ≥ 1.
    - `select prosrc from pg_proc where proname='handle_new_auth_user'` → contiene el `update auth.users set raw_app_meta_data = …`.
    - Drift check: archivo == `statements[0]` salvo newline final.
-4. Regenerar tipos con `supabase_generate_typescript_types` y commitear `types/supabase.ts` (la migración no introduce columnas nuevas, pero la convención es regenerar tras cualquier DDL).
+4. **Fix del staff seed (descubierto durante implementación):** el seed de SPEC 09 omitió los campos `provider: "email"` y `providers: ["email"]` en `raw_app_meta_data`; Supabase Auth los necesita para identificar el provider y sin ellos `signInWithPassword` devuelve 500 "Database error querying schema". Crear `supabase/migrations/04-fix_staff_seed_provider.sql` con un `update auth.users` que añada los dos campos al row de `staff@opendaycare.com`. Aplicar con `name: "04_fix_staff_seed_provider"`. Verificar `select raw_app_meta_data from auth.users where email = 'staff@opendaycare.com'` → incluye `provider: "email"` y `providers: ["email"]`.
+5. Regenerar tipos con `supabase_generate_typescript_types` y commitear `types/supabase.ts` (la migración no introduce columnas nuevas, pero la convención es regenerar tras cualquier DDL).
 5. Crear `utils/supabase/auth.ts` con `getCurrentUser(nextPath?)`. Compila con TypeScript.
 6. Crear `app/_actions/auth.ts` con `signOut` y `app/login/actions.ts` con `signIn`. Compila.
 7. Refactor `app/login/page.tsx`: convertir a Server Component, añadir guard "ya logueado → `/`", reemplazar `onClick` por `<form action={signIn}>` + `useActionState`. Mantener UI de SPEC 03 (panel, formulario, responsive). *Funcional: renderiza igual que antes.*
 8. Refactor `app/activate/page.tsx`: Server Component con guard "ya logueado → `/`". El form sigue siendo mock visual (botón → `router.push('/')`). *Funcional: renderiza igual que antes.*
-9. Crear `app/feed/FeedPageClient.tsx` moviendo el JSX actual de `app/page.tsx`. Refactor `app/page.tsx` a Server Component que llama `getCurrentUser('/')` y renderiza `<FeedPageClient />`. *Funcional: feed protegido.*
-10. Añadir guard al inicio de `app/kids/page.tsx` y `app/kids/[id]/page.tsx`. *Funcional: `/kids` y `/kids/mateo-fernandez` protegidos.*
+9. Crear `app/feed/FeedPageClient.tsx` moviendo el JSX actual de `app/page.tsx`. Refactor `app/page.tsx` a Server Component que envuelve `<FeedPageClient />` con `<AppShell active="feed">` y llama `getCurrentUser("/")`. *Funcional: feed protegido.*
+10. Añadir guard al inicio de `app/kids/page.tsx` y `app/kids/[id]/page.tsx`. Lo mismo con `AppShell` envolviendo `<KidsPageClient />` en `/kids`. *Funcional: `/kids` y `/kids/mateo-fernandez` protegidos.*
 11. Refactor `components/shared/AppShell.tsx`: Server Component que hace `await getCurrentUser()` y pasa `claims` al `Sidebar`. Mover `<FeedProvider>` del root layout al segmento del feed si la convención cambia; en este spec queda solo donde estaba (afecta solo al feed). *Funcional: sidebar muestra el usuario.*
 12. Modificar `components/shared/Sidebar.tsx`: bloque inferior con avatar (iniciales), nombre (`claims.app_metadata.full_name`) y `<form action={signOut}><button>Cerrar sesión</button></form>`. *Funcional: botón visible.*
 13. `npm run lint` y `npm run build` siguen verdes. Verificación manual vía Playwright (sesión real): navegar sin sesión a `/` → redirect a `/login?next=/`; login con `staff@opendaycare.com` / `staff1234` → llega a `/`; sidebar muestra "Staff Sala Soles" + "Cerrar sesión"; clic en "Cerrar sesión" → vuelve a `/login`. Probar también login con password incorrecto → mensaje de error visible.
@@ -165,10 +166,12 @@ specs/.spec-config.yml                       # (sin cambios si ya existe)
 ## Acceptance criteria
 
 - [ ] Existe `supabase/migrations/03-propagate_app_meta_data_on_signup.sql` commiteado.
+- [ ] Existe `supabase/migrations/04-fix_staff_seed_provider.sql` commiteado.
 - [ ] `apply_migration` con nombre `03_propagate_app_meta_data_on_signup` devuelve `success: true`.
-- [ ] `auth.users.raw_app_meta_data` del staff seed contiene `daycare_id` (UUID de Guardería Sala Soles), `role = 'staff'`, `full_name = 'Staff Sala Soles'`.
+- [ ] `apply_migration` con nombre `04_fix_staff_seed_provider` devuelve `success: true`.
+- [ ] `auth.users.raw_app_meta_data` del staff seed contiene `daycare_id` (UUID de Guardería Sala Soles), `role = 'staff'`, `full_name = 'Staff Sala Soles'`, `provider = 'email'` y `providers = ['email']`.
 - [ ] `pg_proc.prosrc` de `handle_new_auth_user` contiene `update auth.users set raw_app_meta_data = jsonb_build_object(...)`.
-- [ ] Drift check: archivo == `statements[0]` salvo newline final.
+- [ ] Drift check: ambos archivos == `statements[0]` salvo newline final.
 - [ ] `types/supabase.ts` regenerado y commiteado.
 - [ ] `utils/supabase/auth.ts` exporta `getCurrentUser(nextPath?)`.
 - [ ] Sin sesión, navegar a `/` redirige a `/login?next=/`; a `/kids` → `/login?next=/kids`; a `/kids/mateo-fernandez` → `/login?next=/kids/mateo-fernandez`.
@@ -192,6 +195,8 @@ specs/.spec-config.yml                       # (sin cambios si ya existe)
 - **Sí:** `redirect` bidireccional con `?next=`. Patrón estándar; evita que un deep-link a `/kids/mateo-fernandez` pierda la ruta destino después del login.
 - **Sí:** mensaje de error genérico ("Email o contraseña incorrectos") en lugar de distinguir email-vs-password. Reduce surface de user enumeration.
 - **Sí:** propagación a `raw_app_meta_data` en este spec. Sin Edge Function ni Hook del JWT — los claims ya están en `app_metadata` y `getClaims()` los lee. El hook para hashearlos como `app_metadata.daycare_id` en el JWT es ortogonal y va con el spec de RLS multi-tenant.
+- **Sí:** migración adicional `04-fix_staff_seed_provider.sql` para añadir `provider: "email"` y `providers: ["email"]` al `raw_app_meta_data` del staff seed. Detectado durante implementación: el seed de SPEC 09 omitió estos campos y Supabase Auth devolvía 500 "Database error querying schema" en login. Es un fix de SPEC 09 que cae dentro del scope de SPEC 10 porque sin él la verificación de login no se completa.
+- **Sí:** el bloque `<AppShell>` se monta en el Server Component (`app/page.tsx`, `app/kids/page.tsx`), no dentro del Client Component (`FeedPageClient.tsx`, `KidsPageClient.tsx`). Patrón estándar de Next.js: un Client Component no puede importar un Server Component, así que el Server wrapper es quien monta la layout. Desviación del spec original, que decía que `app/page.tsx` "renderiza `<FeedPageClient />`" literalmente.
 - **No:** mover `FeedProvider` del root layout. SPEC 01 lo puso ahí; este spec no toca ese contrato.
 - **No:** `app/(app)` route group. Cambio estructural; el guard inline es suficiente.
 - **No:** menú/dropdown de usuario. El botón "Cerrar sesión" plano en el sidebar es el mínimo viable.
