@@ -2,7 +2,6 @@ import { cookies } from "next/headers";
 import { AppShell } from "@/components/shared/AppShell";
 import { getCurrentUser } from "@/utils/supabase/auth";
 import { createClient } from "@/utils/supabase/server";
-import { FeedProvider } from "@/components/feed/FeedContext";
 import { mapChild, type ChildrenRow, type RoomOption } from "@/components/kids/mapKid";
 import { FeedPageClient } from "./feed/FeedPageClient";
 
@@ -32,10 +31,8 @@ export default async function Page() {
   );
 
   return (
-    <AppShell active="feed">
-      <FeedProvider kids={kids}>
-        <FeedPageClient />
-      </FeedProvider>
+    <AppShell active="feed" kids={kids}>
+      <FeedPageClient />
     </AppShell>
   );
 }

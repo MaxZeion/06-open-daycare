@@ -4,7 +4,7 @@ import { AppShell } from "../../../components/shared/AppShell";
 import { ArrowLeftIcon } from "../../../components/shared/icons";
 import { getCurrentUser } from "@/utils/supabase/auth";
 import { createClient } from "@/utils/supabase/server";
-import { isUuid, mapChild, type ChildrenRow, type RoomOption } from "@/components/kids/mapKid";
+import { mapChild, type ChildrenRow, type RoomOption } from "@/components/kids/mapKid";
 import { ProfileClient } from "./ProfileClient";
 
 function NotFound() {
@@ -35,21 +35,15 @@ export default async function KidProfilePage({
   const { id } = await params;
   await getCurrentUser(`/kids/${id}`);
 
-  if (!isUuid(id)) {
-    return (
-      <AppShell active="kids">
-        <div className="mx-auto w-full max-w-[820px] px-5 pt-8 pb-24 md:px-10 md:pt-[34px] md:pb-20">
-          <NotFound />
-        </div>
-      </AppShell>
-    );
-  }
-
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
 
-  const [{ data: childData }, { data: roomsData }] = await Promise.all([
-    supabase.from("children").select("*").eq("id", id).eq("status", "active").maybeSingle(),
+  const [{ data: childrenData }, { data: roomsData }] = await Promise.all([
+    supabase
+      .from("children")
+      .select("*")
+      .eq("status", "active")
+      .order("created_at", { ascending: false }),
     supabase.from("rooms").select("id, name").order("name"),
   ]);
 
@@ -59,11 +53,14 @@ export default async function KidProfilePage({
       name: room.name,
     })) ?? [];
 
-  const row = childData as ChildrenRow | null;
-  const kid = row ? mapChild(row, rooms) : null;
+  const kids = ((childrenData as ChildrenRow[] | null) ?? []).map((row) =>
+    mapChild(row, rooms),
+  );
+
+  const kid = kids.find((item) => item.id === id) ?? null;
 
   return (
-    <AppShell active="kids">
+    <AppShell active="kids" kids={kids}>
       <div className="mx-auto w-full max-w-[820px] px-5 pt-8 pb-24 md:px-10 md:pt-[34px] md:pb-20">
         {kid ? (
           <ProfileClient kid={kid} backHref={`/kids?room=${kid.roomId}`} />

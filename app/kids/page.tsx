@@ -40,7 +40,7 @@ export default async function Page({ searchParams }: PageProps) {
     : (rooms[0]?.id ?? "");
 
   return (
-    <AppShell active="kids">
+    <AppShell active="kids" kids={kids}>
       <KidsPageClient rooms={rooms} kids={kids} selectedRoomId={selectedRoomId} />
     </AppShell>
   );
