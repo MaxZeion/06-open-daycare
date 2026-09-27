@@ -1,6 +1,6 @@
 # SPEC 11 — Niños reales desde Supabase y salas con ribbon
 
-> **Status:** Aprobado
+> **Status:** Implementado
 > **Depends on:** SPEC 02 (listado/perfil), SPEC 04 (modal agregar niño), SPEC 05 (vincular padre), SPEC 07 (nueva publicación PARA), SPEC 08 (seed daycares+rooms), SPEC 10 (login y guards)
 > **Date:** 2026-09-27
 > **Objective:** Sustituir los mocks `KIDS` por datos reales: tabla `children` (migración `05`), selector de SALA desde `rooms`, alta real vía Server Action, `/kids` con chips de sala y ribbon numérico por sala, perfil `/kids/[id]` por UUID y los chips "PARA" del feed consumiendo niños de la BD.
@@ -162,25 +162,25 @@ components/feed/
 
 ## Acceptance criteria
 
-- [ ] Existe `supabase/migrations/05-create_children.sql` commiteado.
-- [ ] `apply_migration` con `05_create_children` devuelve success; vía MCP: tabla `children` con RLS activado, 4 policies para `authenticated`, índice `children_room_id_idx` y 0 filas; sin drift con el archivo.
-- [ ] `types/supabase.ts` incluye la tabla `children`.
-- [ ] `rg "KIDS|SALAS"` en `app/` y `components/` devuelve 0 coincidencias.
-- [ ] `/kids` muestra 4 chips (Soles, Lunas, Estrellas, Mariposas) provenientes de `rooms`, cada una con su ribbon con `0`.
-- [ ] Al hacer clic en un chip la URL queda `?room=<uuid>`; al recargar se mantiene la sala seleccionada y su ribbon; sin parámetro arranca la primera sala por nombre.
-- [ ] El select SALA del modal muestra exactamente los nombres de las 4 salas de la BD, con la sala activa en `/kids` preseleccionada por defecto.
-- [ ] Guardar "Martina López / 15/03/2022 / maní" crea una fila en `children` (verificado con MCP: `birth_date = 2022-03-15`, `allergy_tags = {peanut}`, `room_id` de la sala de la pestaña) y cierra el modal.
-- [ ] Tras guardar, la tarjeta aparece primera en la grilla de su sala, el ribbon de esa sala sube a 1, y la tarjeta muestra badge MANÍ si tiene alergia o VINCULAR si no.
-- [ ] El buscador filtra solo los niños de la sala seleccionada; las demás salas conservan su ribbon intacto.
-- [ ] Sala sin niños en `/kids` muestra "Aún no hay niños en esta sala" sin errores.
-- [ ] Clic en una tarjeta navega a `/kids/<uuid>` y el perfil renderiza datos reales: nombre, "N años · Sala X", fecha de nacimiento "dd mmm aaaa", ingreso "mmm aaaa", caja de alergias MANÍ si aplica y notas médicas si existen.
-- [ ] "Volver a Niños" regresa a `/kids` con `?room=` de la sala del niño activo.
-- [ ] `/kids/<uuid-inexistente>` y `/kids/no-es-uuid` muestran el `NotFound` vacío, sin errores de consola ni 500.
-- [ ] PARA del feed muestra chips con los niños reales (tras darlos de alta); "Toda la sala" sigue funcionando; con 0 niños muestra mensaje vacío.
-- [ ] "Vincular" del perfil abre `LinkParentModal` (SPEC 05) y añade el padre en memoria.
-- [ ] Consola sin errores durante el flujo completo login → `/kids` → alta → perfil → feed → logout.
-- [ ] Sin regresiones en `/`, `/login`, `/activate` ni en los guards de SPEC 10.
-- [ ] `npm run lint` y `npm run build` pasan sin errores.
+- [x] Existe `supabase/migrations/05-create_children.sql` commiteado. — ok: `git ls-tree HEAD` lo incluye; commit `f0996e3` en rama `spec-11-kids-from-supabase`.
+- [x] `apply_migration` con `05_create_children` devuelve success; vía MCP: tabla `children` con RLS activado, 4 policies para `authenticated`, índice `children_room_id_idx` y 0 filas; sin drift con el archivo. — ok: MCP: versión `20260927143850`; `relrowsecurity=true`; 4 policies (r/a/w/d, rol `authenticated`); `children_room_id_idx` presente; 0 filas post-migración (verificado en el paso 2 de la implementación — hoy hay 5 filas de prueba creadas por la propia verificación vía UI, no seeds); sin drift: md5 del archivo `b4aea46350b4929a5d3d29ee521a03fd` == md5 de `statements[1]` (idéntico, ni newline).
+- [x] `types/supabase.ts` incluye la tabla `children`. — ok: `rg -n children types/supabase.ts` → línea 17 `children: {` + FK `children_room_id_fkey` (línea 56).
+- [x] `rg "KIDS|SALAS"` en `app/` y `components/` devuelve 0 coincidencias. — ok: `rg -nw "KIDS|SALAS" app/ components/` → exit 1 (0 coincidencias); sin restos de `buildKidId` ni `mateo-fernandez`.
+- [x] `/kids` muestra 4 chips (Soles, Lunas, Estrellas, Mariposas) provenientes de `rooms`, cada una con su ribbon con `0`. — ok: chips = las 4 salas de `rooms` ordenadas por nombre; con 0 filas post-migración cada ribbon marcó `0` (evidencia de la sesión de implementación); hoy los ribbons reflejan los contajes REALES de `children` (Estrellas 2, Lunas 1, Mariposas 0, Soles 2 = 5 activos en BD). Screenshot `.mcp-playwright/spec-11-verify-kids-estrellas-desktop.png`.
+- [x] Al hacer clic en un chip la URL queda `?room=<uuid>`; al recargar se mantiene la sala seleccionada y su ribbon; sin parámetro arranca la primera sala por nombre. — ok: clic Soles → `/kids?room=df23d39f-…`; `goto` con el parámetro recarga con Soles activo (`aria-selected`, servidor desde `searchParams`); `/kids` sin param → Estrellas (primera por nombre) activa.
+- [x] El select SALA del modal muestra exactamente los nombres de las 4 salas de la BD, con la sala activa en `/kids` preseleccionada por defecto. — ok: `select[name=room_id]` con 4 options (value=uuid, label=Estrellas/Lunas/Mariposas/Soles); default = uuid de la pestaña activa (verificado con Soles y con Mariposas).
+- [x] Guardar "Martina López / 15/03/2022 / maní" crea una fila en `children` (verificado con MCP: `birth_date = 2022-03-15`, `allergy_tags = {peanut}`, `room_id` de la sala de la pestaña) y cierra el modal. — ok: fila MCP: Martina López, `2022-03-15`, `{peanut}`, room `22696e1a` (Estrellas, pestaña activa al crearla). Re-verificado end-to-end en esta verificación con "Ana Prueba / 01/01/2024" en Mariposas → fila real (`2024-01-01`), modal cierra solo en éxito; la fila de prueba se eliminó después (BD restaurada a 5 filas).
+- [x] Tras guardar, la tarjeta aparece primera en la grilla de su sala, el ribbon de esa sala sube a 1, y la tarjeta muestra badge MANÍ si tiene alergia o VINCULAR si no. — ok: "Ana Prueba" apareció primera en la grilla de Mariposas (antes vacía) y su ribbon subió 0→1 sin reload (`revalidatePath`); Martina → MANÍ, André → LACTOSA, Hugo/Ana → VINCULAR (`KidCard`).
+- [x] El buscador filtra solo los niños de la sala seleccionada; las demás salas conservan su ribbon intacto. — ok: en Soles, "Hug" → solo Hugo; "Mar" → "No se encontraron niños." (no se filtra Martina/Martí de otras salas); ribbons 2/1/0/2 inalterados.
+- [x] Sala sin niños en `/kids` muestra "Aún no hay niños en esta sala" sin errores. — ok: Mariposas → "Aún no hay niños en esta sala.", 0 errores de consola.
+- [x] Clic en una tarjeta navega a `/kids/<uuid>` y el perfil renderiza datos reales: nombre, "N años · Sala X", fecha de nacimiento "dd mmm aaaa", ingreso "mmm aaaa", caja de alergias MANÍ si aplica y notas médicas si existen. — ok: `/kids/d4937b6b-…` → "Martina López", "4 años · Sala Estrellas", "15 mar 2022", "Ingreso sep 2026", caja "Alergia: maní · Revisar mochila inhalador". Screenshot `.mcp-playwright/spec-11-verify-profile-desktop.png`.
+- [x] "Volver a Niños" regresa a `/kids` con `?room=` de la sala del niño activo. — ok: el enlace del perfil de Martina es `/kids?room=22696e1a-…` y al pulsarlo queda Estrellas activa.
+- [x] `/kids/<uuid-inexistente>` y `/kids/no-es-uuid` muestran el `NotFound` vacío, sin errores de consola ni 500. — ok: ambas URLs → "No encontramos a este niño", 200 en el navegador, 0 errores de consola y 0 errores en `dev-server.log`.
+- [x] PARA del feed muestra chips con los niños reales (tras darlos de alta); "Toda la sala" sigue funcionando; con 0 niños muestra mensaje vacío. — ok: modal "Nueva publicación" → 5 chips reales (los niños de la BD, `created_at` desc); "Toda la sala" alterna `aria-pressed` y oculta los chips (semántica SPEC 07 intacta); mensaje vacío con 0 niños verificado en código (`NewPostModal.tsx:213` "Aún no hay niños dados de alta.") y en runtime durante la implementación (BD en 0 filas post-migración); no se repitió el borrado total para no destruir las 5 filas de prueba del usuario. Screenshot `.mcp-playwright/spec-11-verify-feed-para-desktop.png`.
+- [x] "Vincular" del perfil abre `LinkParentModal` (SPEC 05) y añade el padre en memoria. — ok: en el perfil de Hugo abre "Vincular padre"; al enviar "Diego Fernández / Papá" aparece en PADRES VINCULADOS como "invitación enviada · PENDIENTE" (solo memoria, sin escribir en BD). Screenshot `.mcp-playwright/spec-11-verify-vincular-desktop.png`.
+- [x] Consola sin errores durante el flujo completo login → `/kids` → alta → perfil → feed → logout. — ok: 0 errores/0 warnings en toda la sesión de Playwright; `dev-server.log` sin 500 ni errores de aplicación.
+- [x] Sin regresiones en `/`, `/login`, `/activate` ni en los guards de SPEC 10. — ok: `/`, `/login`(200), `/activate`(200) renderizan; logout → `/login`; sin sesión: `/kids`, `/`, `/kids/<id>` → 307 → `/login?next=<ruta>` (curl + primer acceso de la sesión).
+- [x] `npm run lint` y `npm run build` pasan sin errores. — ok: LINT_EXIT=0; BUILD_EXIT=0; rutas `ƒ /`, `ƒ /kids`, `ƒ /kids/[id]`, `○ /_not-found`, `ƒ /activate`, `ƒ /login` + proxy.
 
 ## Decisions
 
@@ -197,6 +197,9 @@ components/feed/
 - **Sí:** texto de alergia no reconocido se descarta; solo `peanut`/`lactosa` generan tag (acordado).
 - **No:** `updated_at` + trigger en `children`. No hay UI de actualización en este spec; se añadirá con `editar-nino`.
 - **No:** `parent_children`, Vincular real, `photo_consent` en UI, RLS multi-tenant, `post_children`.
+- **Sí (desviación del plan, registrada en verificación):** `FeedProvider` se mueve del root layout a `AppShell` (`components/shared/AppShell.tsx` renderiza `<FeedProvider kids={kids}>` alrededor de `AppShellClient` y acepta `kids?: Kid[]`). El plan preveía reenviar los niños por props `FeedPageClient → NewPostModal`, pero el root layout no puede recibir props de las páginas y el sidebar/FAB consumen `useFeed()`: el provider debe envolver todo el shell y cada página protegida (`/`, `/kids`, `/kids/[id]`) pasa su lista de niños a `AppShell`. Esto **revierte la decisión "No: mover FeedProvider del root layout" de SPEC 10** — era insostenible con datos server-fetched. El criterio "fetch en Server Components con props" se respeta: los niños siguen llegando por props desde la página; solo el último tramo (shell → modal) usa el contexto ya existente.
+- **Sí (desviación, registrada en verificación):** el perfil `/kids/[id]` resuelve al niño con `find` sobre la lista de `children` activos (fetch ya necesario para el shell) en lugar de `.eq("id", id)`. Un id malformado simplemente no matchea → `NotFound`, sin riesgo de `22P02`; la mitigación del riesgo queda cubierta igualmente. El helper `isUuid` se exporta desde `mapKid.ts` y lo usa `actions.ts` para validar `room_id`.
+- **Sí (desviación menor, registrada en verificación):** `mapKid.ts` expone además `ageFromIso`, `formatSpanishMonthYear` y `tagsToSpanishNotes` (subfunciones del mapeo previsto), y `AddKidModal` se monta condicionalmente desde `KidsPageClient` (`{addOpen && <AddKidModal/>}`) en lugar de recibir prop `open` — el reset de campos al reabrir se logra por remount, que es el comportamiento que exigía el criterio.
 
 ## Risks
 
