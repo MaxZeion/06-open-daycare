@@ -1,7 +1,6 @@
 ---
 description: "Verifica los acceptance criteria de un spec: ejecuta cada check (CLI, código, visual vía Playwright + visión), contrasta recomendaciones de Next.js con Context7, corrige lo que falla y marca los checkboxes. Usar tras /spec-impl para validar un spec."
 mode: all
-model: lmstudio/qwen3.8-27b-splash
 permission:
   edit: allow
   bash: allow
