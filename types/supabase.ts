@@ -14,6 +14,53 @@ export type Database = {
   }
   public: {
     Tables: {
+      children: {
+        Row: {
+          allergy_tags: string[]
+          birth_date: string
+          created_at: string
+          enrolled_at: string
+          full_name: string
+          id: string
+          medical_notes: string | null
+          photo_consent: boolean
+          room_id: string | null
+          status: Database["public"]["Enums"]["child_status"]
+        }
+        Insert: {
+          allergy_tags?: string[]
+          birth_date: string
+          created_at?: string
+          enrolled_at?: string
+          full_name: string
+          id?: string
+          medical_notes?: string | null
+          photo_consent?: boolean
+          room_id?: string | null
+          status?: Database["public"]["Enums"]["child_status"]
+        }
+        Update: {
+          allergy_tags?: string[]
+          birth_date?: string
+          created_at?: string
+          enrolled_at?: string
+          full_name?: string
+          id?: string
+          medical_notes?: string | null
+          photo_consent?: boolean
+          room_id?: string | null
+          status?: Database["public"]["Enums"]["child_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "children_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       daycares: {
         Row: {
           created_at: string
@@ -113,6 +160,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      child_status: "active" | "archived"
       user_role: "staff" | "parent" | "admin"
       user_status: "pending" | "active"
     }
@@ -242,6 +290,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      child_status: ["active", "archived"],
       user_role: ["staff", "parent", "admin"],
       user_status: ["pending", "active"],
     },
