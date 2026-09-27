@@ -143,7 +143,11 @@ function tagsToSpanishNotes(tags: string[]): string | undefined {
   return `Alergia: ${labels.join(", ")}`;
 }
 
-export function mapChild(row: ChildrenRow, rooms: RoomOption[]): Kid {
+export function mapChild(
+  row: ChildrenRow,
+  rooms: RoomOption[],
+  parentsCount = 0,
+): Kid {
   const room = rooms.find((item) => item.id === row.room_id);
   const trimmedName = row.full_name.trim();
 
@@ -155,7 +159,7 @@ export function mapChild(row: ChildrenRow, rooms: RoomOption[]): Kid {
     avatar: AVATAR_PALETTE[hashUuid(row.id) % AVATAR_PALETTE.length],
     age: ageFromIso(row.birth_date),
     sala: room?.name ?? "",
-    parentsCount: 0,
+    parentsCount,
     parents: [],
     birthDate: formatSpanishDate(row.birth_date),
     entry: formatSpanishMonthYear(row.enrolled_at),
