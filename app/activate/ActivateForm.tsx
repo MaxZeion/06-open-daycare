@@ -4,6 +4,7 @@ import { useState, useActionState, useTransition } from "react";
 import Link from "next/link";
 import { CheckIcon, SunIcon } from "@/components/shared/icons";
 import { activate, type ActivateState } from "./actions";
+import { AVATAR_PALETTE } from "@/components/kids/mockKids";
 
 const CODE_RE = /^[A-Z0-9]{5}$/;
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
@@ -14,7 +15,31 @@ const INITIAL_STATE: ActivateState = {};
 const INPUT_CLASSES =
   "mb-[18px] w-full rounded-[14px] border-[1.5px] border-input-border bg-white px-4 py-[14px] text-[15px] text-ink outline-none placeholder:text-[#B6A99B]";
 
-export function ActivateForm({ initialCode = "" }: { initialCode?: string }) {
+export interface InvitationPreview {
+  childName: string;
+  roomName?: string;
+  childId: string;
+}
+
+function hashId(id: string): number {
+  let hash = 0;
+  for (let i = 0; i < id.length; i += 1) {
+    hash = (hash * 31 + id.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hash);
+}
+
+function avatarFor(id: string): { bg: string; fg: string } {
+  return AVATAR_PALETTE[hashId(id) % AVATAR_PALETTE.length];
+}
+
+export function ActivateForm({
+  initialCode = "",
+  preview,
+}: {
+  initialCode?: string;
+  preview?: InvitationPreview;
+}) {
   const [state, formAction, isPending] = useActionState<ActivateState, FormData>(
     activate,
     INITIAL_STATE,
@@ -44,6 +69,11 @@ export function ActivateForm({ initialCode = "" }: { initialCode?: string }) {
       formAction(formData);
     });
   }
+
+  const childName = preview?.childName ?? "Mateo";
+  const roomName = preview?.roomName ?? "Sala Soles";
+  const avatar = preview ? avatarFor(preview.childId) : undefined;
+  const avatarInitial = childName.charAt(0).toUpperCase();
 
   if (state.ok) {
     return (
@@ -87,19 +117,21 @@ export function ActivateForm({ initialCode = "" }: { initialCode?: string }) {
         <div className="mb-[22px] flex items-center gap-[14px] rounded-[16px] border-[1.5px] border-input-border bg-white px-4 py-[14px]">
           <div
             className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full font-display text-[19px] font-semibold"
-            style={{
-              backgroundColor: "var(--avatar-mateo-bg)",
-              color: "var(--avatar-mateo-fg)",
-            }}
+            style={
+              avatar
+                ? { backgroundColor: avatar.bg, color: avatar.fg }
+                : { backgroundColor: "var(--avatar-mateo-bg)", color: "var(--avatar-mateo-fg)" }
+            }
           >
-            M
+            {avatarInitial}
           </div>
           <div>
             <div className="text-[13px] text-muted-strong">
               Te invitaron a seguir a
             </div>
             <div className="font-display text-[17px] font-semibold text-ink">
-              Mateo · Sala Soles
+              {childName}
+              {roomName ? ` · ${roomName}` : ""}
             </div>
           </div>
         </div>

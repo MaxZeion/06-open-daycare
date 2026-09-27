@@ -45,6 +45,8 @@ create function public.validate_invitation(p_code text)
 returns table (
   invitation_id    uuid,
   child_id         uuid,
+  child_full_name  text,
+  room_name        text,
   parent_full_name text,
   parent_email     text,
   relationship     public.relationship_type,
@@ -57,7 +59,7 @@ security definer
 set search_path = public
 stable
 as $$
-  select i.id, i.child_id, i.full_name, i.email, i.relationship, i.status, i.expires_at, r.daycare_id
+  select i.id, i.child_id, c.full_name, r.name, i.full_name, i.email, i.relationship, i.status, i.expires_at, r.daycare_id
     from public.invitations i
     join public.children c on c.id = i.child_id
     left join public.rooms r on r.id = c.room_id

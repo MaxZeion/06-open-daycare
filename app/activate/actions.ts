@@ -16,6 +16,8 @@ const MIN_PASSWORD_LENGTH = 8;
 interface InvitationInfo {
   invitation_id: string;
   child_id: string;
+  child_full_name: string;
+  room_name: string | null;
   parent_full_name: string;
   parent_email: string;
   relationship: Relationship;
