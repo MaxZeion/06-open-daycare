@@ -93,12 +93,13 @@ export function KidsPageClient({ rooms, kids, selectedRoomId }: KidsPageClientPr
         )}
       </div>
 
-      <AddKidModal
-        open={addOpen}
-        rooms={rooms}
-        defaultRoomId={selectedRoomId}
-        onClose={() => setAddOpen(false)}
-      />
+      {addOpen ? (
+        <AddKidModal
+          rooms={rooms}
+          defaultRoomId={selectedRoomId}
+          onClose={() => setAddOpen(false)}
+        />
+      ) : null}
     </>
   );
 }

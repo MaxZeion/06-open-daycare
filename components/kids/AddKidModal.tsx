@@ -1,100 +1,47 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useActionState, useRef, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
 import { ChevronDownIcon } from "../shared/icons";
-import { applyDateMask, ageFromBirthDate, parseSpanishDate } from "./dateMask";
-import {
-  AVATAR_PALETTE,
-  SALAS,
-  buildKidId,
-  type AllergyTag,
-  type Kid,
-  type Sala,
-} from "./mockKids";
+import { applyDateMask, parseSpanishDate } from "./dateMask";
+import { addKid, type AddKidState } from "../../app/kids/actions";
+import type { RoomOption } from "./mapKid";
 
 type AddKidModalProps = {
-  open: boolean;
-  addedCount: number;
+  rooms: RoomOption[];
+  defaultRoomId: string;
   onClose: () => void;
-  onSave: (kid: Kid) => void;
 };
 
 const FIELD_CLASSES =
   "w-full rounded-[14px] border-[1.5px] bg-field-bg px-4 py-[13px] text-[15px] text-ink outline-none placeholder:text-field-placeholder";
 
-function mapAllergy(raw: string): AllergyTag | undefined {
-  const normalized = raw
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase();
+const INITIAL_STATE: AddKidState = {};
 
-  if (normalized.includes("mani")) {
-    return "maní";
-  }
-  if (normalized.includes("lactosa")) {
-    return "lactosa";
-  }
-  return undefined;
-}
+export function AddKidModal({ rooms, defaultRoomId, onClose }: AddKidModalProps) {
+  const [state, formAction, isPending] = useActionState<AddKidState, FormData>(
+    addKid,
+    INITIAL_STATE,
+  );
+  const [isTransitioning, startTransition] = useTransition();
 
-function buildKid({
-  name,
-  birthDate,
-  sala,
-  allergies,
-  medicalNotes,
-  addedCount,
-}: {
-  name: string;
-  birthDate: string;
-  sala: Sala;
-  allergies: string;
-  medicalNotes: string;
-  addedCount: number;
-}): Kid {
-  const trimmedName = name.trim();
-  const parsedBirthDate = parseSpanishDate(birthDate);
-
-  return {
-    id: buildKidId(trimmedName),
-    name: trimmedName,
-    initials: trimmedName.charAt(0).toUpperCase(),
-    avatar: AVATAR_PALETTE[addedCount % AVATAR_PALETTE.length],
-    age: parsedBirthDate ? ageFromBirthDate(parsedBirthDate) : 0,
-    sala,
-    parentsCount: 0,
-    parents: [],
-    birthDate,
-    allergy: mapAllergy(allergies),
-    allergyNotes: allergies.trim() || undefined,
-    medicalNotes: medicalNotes.trim() || undefined,
-  };
-}
-
-export function AddKidModal({ open, addedCount, onClose, onSave }: AddKidModalProps) {
   const [name, setName] = useState("");
   const [birthDate, setBirthDate] = useState("");
-  const [sala, setSala] = useState<Sala>("Soles");
+  const [roomId, setRoomId] = useState(defaultRoomId);
   const [allergies, setAllergies] = useState("");
   const [medicalNotes, setMedicalNotes] = useState("");
   const [attempted, setAttempted] = useState(false);
+  const closedOnSuccess = useRef(false);
 
   useEffect(() => {
-    if (!open) {
-      return;
-    }
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = previousOverflow;
     };
-  }, [open]);
+  }, []);
 
   useEffect(() => {
-    if (!open) {
-      return;
-    }
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
         onClose();
@@ -104,11 +51,14 @@ export function AddKidModal({ open, addedCount, onClose, onSave }: AddKidModalPr
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [open, onClose]);
+  }, [onClose]);
 
-  if (!open) {
-    return null;
-  }
+  useEffect(() => {
+    if (state.ok && !closedOnSuccess.current) {
+      closedOnSuccess.current = true;
+      onClose();
+    }
+  }, [state, onClose]);
 
   const trimmedName = name.trim();
   const nameParts = trimmedName.split(/\s+/).filter(Boolean);
@@ -118,25 +68,18 @@ export function AddKidModal({ open, addedCount, onClose, onSave }: AddKidModalPr
   const dateInvalid = parseSpanishDate(birthDate) === null;
   const showNameError = attempted && nameInvalid;
   const showDateError = attempted && dateInvalid;
+  const saving = isPending || isTransitioning;
 
-  function resetFields() {
-    setName("");
-    setBirthDate("");
-    setSala("Soles");
-    setAllergies("");
-    setMedicalNotes("");
-    setAttempted(false);
-  }
-
-  function handleSave() {
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     if (nameInvalid || dateInvalid) {
       setAttempted(true);
       return;
     }
-    onSave(
-      buildKid({ name, birthDate, sala, allergies, medicalNotes, addedCount })
-    );
-    resetFields();
+    const formData = new FormData(event.currentTarget);
+    startTransition(() => {
+      formAction(formData);
+    });
   }
 
   return createPortal(
@@ -163,20 +106,33 @@ export function AddKidModal({ open, addedCount, onClose, onSave }: AddKidModalPr
             Agregar niño
           </span>
           <button
-            type="button"
-            onClick={handleSave}
-            className="text-[15px] font-extrabold text-accent"
+            type="submit"
+            form="add-kid-form"
+            disabled={saving}
+            aria-busy={saving}
+            className="text-[15px] font-extrabold text-accent disabled:opacity-60"
           >
-            Guardar
+            {saving ? "Guardando…" : "Guardar"}
           </button>
         </header>
 
-        <div className="overflow-y-auto px-[26px] py-6">
+        <form
+          id="add-kid-form"
+          onSubmit={handleSubmit}
+          className="overflow-y-auto px-[26px] py-6"
+        >
+          {state.error ? (
+            <p className="mb-4 rounded-[12px] bg-alert-box-bg px-4 py-3 text-[13.5px] font-bold text-alert-title">
+              {state.error}
+            </p>
+          ) : null}
+
           <div className="mb-[18px]">
             <div className="mb-2 text-xs font-extrabold tracking-[0.7px] text-muted-strong">
               NOMBRE COMPLETO
             </div>
             <input
+              name="full_name"
               value={name}
               onChange={(event) => setName(event.target.value)}
               placeholder="Ej. Martina López"
@@ -198,6 +154,7 @@ export function AddKidModal({ open, addedCount, onClose, onSave }: AddKidModalPr
                 FECHA DE NACIMIENTO
               </div>
               <input
+                name="birth_date"
                 value={birthDate}
                 onChange={(event) => setBirthDate(applyDateMask(event.target.value))}
                 placeholder="dd/mm/aaaa"
@@ -222,13 +179,14 @@ export function AddKidModal({ open, addedCount, onClose, onSave }: AddKidModalPr
               </div>
               <div className="relative">
                 <select
-                  value={sala}
-                  onChange={(event) => setSala(event.target.value as Sala)}
+                  name="room_id"
+                  value={roomId}
+                  onChange={(event) => setRoomId(event.target.value)}
                   className="w-full appearance-none rounded-[14px] border-[1.5px] border-input-border bg-field-bg py-[13px] pl-4 pr-9 text-[15px] font-bold text-ink outline-none"
                 >
-                  {SALAS.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
+                  {rooms.map((room) => (
+                    <option key={room.id} value={room.id}>
+                      {room.name}
                     </option>
                   ))}
                 </select>
@@ -242,6 +200,7 @@ export function AddKidModal({ open, addedCount, onClose, onSave }: AddKidModalPr
               ALERGIAS (ETIQUETAS)
             </div>
             <input
+              name="allergies"
               value={allergies}
               onChange={(event) => setAllergies(event.target.value)}
               placeholder="Ej. Maní, Lactosa"
@@ -253,12 +212,13 @@ export function AddKidModal({ open, addedCount, onClose, onSave }: AddKidModalPr
             NOTAS MÉDICAS
           </div>
           <textarea
+            name="medical_notes"
             value={medicalNotes}
             onChange={(event) => setMedicalNotes(event.target.value)}
             placeholder="Indicaciones, medicación, contactos…"
             className={`${FIELD_CLASSES} min-h-[90px] resize-y leading-[1.5] border-input-border`}
           />
-        </div>
+        </form>
       </div>
     </div>,
     document.body
