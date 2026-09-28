@@ -1,33 +1,32 @@
-"use client";
-
 import Link from "next/link";
-import { useFeed } from "../feed/FeedContext";
 import {
   BellIcon,
   HomeIcon,
   LogoutIcon,
-  PlusIcon,
   SunIcon,
   UserIcon,
   UsersIcon,
 } from "./icons";
+import { NewPostButton } from "./NewPostButton";
 import { signOut } from "@/app/_actions/auth";
 import type { CurrentUser, CurrentUserRole } from "@/utils/supabase/types";
 
 export type SectionId = "feed" | "kids";
 
 type NavItem = {
+  id: string;
   label: string;
   icon: typeof HomeIcon;
   href?: string;
   section?: SectionId;
+  enabled?: boolean;
 };
 
 const NAV_ITEMS: NavItem[] = [
-  { label: "Feed", icon: HomeIcon, href: "/", section: "feed" },
-  { label: "Niños", icon: UsersIcon, href: "/kids", section: "kids" },
-  { label: "Avisos", icon: BellIcon },
-  { label: "Mi cuenta", icon: UserIcon },
+  { id: "feed", label: "Feed", icon: HomeIcon, href: "/", section: "feed", enabled: true },
+  { id: "kids", label: "Niños", icon: UsersIcon, href: "/kids", section: "kids", enabled: true },
+  { id: "notices", label: "Avisos", icon: BellIcon, enabled: false },
+  { id: "account", label: "Mi cuenta", icon: UserIcon, enabled: false },
 ];
 
 const ROLE_LABEL: Record<CurrentUserRole, string> = {
@@ -46,18 +45,26 @@ function getInitials(fullName: string): string {
 }
 
 function NavItemView({ item, active }: { item: NavItem; active: boolean }) {
-  const { label, icon: Icon, href } = item;
-  const className =
-    active
-      ? "flex items-center gap-3 rounded-xl bg-accent-soft px-3 py-[11px] text-[14.5px] font-extrabold text-accent"
-      : "flex items-center gap-3 rounded-xl px-3 py-[11px] text-[14.5px] font-semibold text-idle";
-  return href ? (
-    <Link href={href} className={className}>
-      <Icon className="h-[19px] w-[19px]" />
-      {label}
-    </Link>
-  ) : (
-    <button type="button" className={className}>
+  const { label, icon: Icon, href, enabled = true } = item;
+  const className = active
+    ? "flex items-center gap-3 rounded-xl bg-accent-soft px-3 py-[11px] text-[14.5px] font-extrabold text-accent"
+    : "flex items-center gap-3 rounded-xl px-3 py-[11px] text-[14.5px] font-semibold text-idle";
+  if (href && enabled) {
+    return (
+      <Link href={href} className={className}>
+        <Icon className="h-[19px] w-[19px]" />
+        {label}
+      </Link>
+    );
+  }
+  return (
+    <button
+      type="button"
+      disabled
+      aria-disabled="true"
+      aria-label={`${label} (próximamente)`}
+      className={`${className} disabled:cursor-not-allowed disabled:opacity-60`}
+    >
       <Icon className="h-[19px] w-[19px]" />
       {label}
     </button>
@@ -71,11 +78,13 @@ export function Sidebar({
   active?: SectionId;
   currentUser: CurrentUser;
 }) {
-  const { openModal } = useFeed();
   const initials = getInitials(currentUser.fullName);
 
   return (
-    <aside className="sticky top-0 flex h-full w-[248px] shrink-0 flex-col border-r border-border bg-surface px-4 py-6">
+    <aside
+      aria-label="Barra lateral de OpenDayCare"
+      className="sticky top-0 flex h-full w-[248px] shrink-0 flex-col border-r border-border bg-surface px-4 py-6"
+    >
       <div className="flex items-center gap-[11px] px-2 pb-[22px] pt-1">
         <div className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-xl bg-[linear-gradient(155deg,var(--brand-soft),var(--brand))]">
           <SunIcon className="h-[21px] w-[21px] text-white" />
@@ -88,19 +97,12 @@ export function Sidebar({
         </div>
       </div>
 
-      <button
-        type="button"
-        onClick={openModal}
-        className="mb-[18px] flex w-full items-center justify-center gap-2 rounded-[14px] bg-[linear-gradient(180deg,var(--brand-deep-soft),var(--brand-deep))] py-3 text-[14.5px] font-extrabold text-white shadow-cta"
-      >
-        <PlusIcon className="h-[17px] w-[17px]" />
-        Nueva publicación
-      </button>
+      <NewPostButton />
 
-      <nav className="flex flex-1 flex-col gap-1">
+      <nav aria-label="Navegación principal" className="flex flex-1 flex-col gap-1">
         {NAV_ITEMS.map((item) => (
           <NavItemView
-            key={item.label}
+            key={item.id}
             item={item}
             active={item.section === active}
           />
@@ -109,7 +111,10 @@ export function Sidebar({
 
       <div className="mt-2.5 border-t border-border pt-3.5">
         <div className="flex items-center gap-[11px] p-1.5 px-2">
-          <div className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-full bg-brand font-display text-base font-semibold text-white">
+          <div
+            aria-hidden="true"
+            className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-full bg-brand font-display text-base font-semibold text-white"
+          >
             {initials}
           </div>
           <div className="min-w-0 flex-1">
@@ -123,7 +128,6 @@ export function Sidebar({
           <form action={signOut}>
             <button
               type="submit"
-              title="Cerrar sesión"
               aria-label="Cerrar sesión"
               className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-bg text-muted-strong transition-colors hover:text-accent"
             >
