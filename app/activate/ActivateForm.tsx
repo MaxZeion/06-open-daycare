@@ -70,10 +70,10 @@ export function ActivateForm({
     });
   }
 
-  const childName = preview?.childName ?? "Mateo";
-  const roomName = preview?.roomName ?? "Sala Soles";
+  const childName = preview?.childName ?? "";
+  const roomName = preview?.roomName ?? "";
   const avatar = preview ? avatarFor(preview.childId) : undefined;
-  const avatarInitial = childName.charAt(0).toUpperCase();
+  const avatarInitial = childName ? childName.charAt(0).toUpperCase() : "·";
 
   if (state.ok) {
     return (
@@ -114,27 +114,28 @@ export function ActivateForm({
           activar la cuenta.
         </p>
 
-        <div className="mb-[22px] flex items-center gap-[14px] rounded-[16px] border-[1.5px] border-input-border bg-white px-4 py-[14px]">
-          <div
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full font-display text-[19px] font-semibold"
-            style={
-              avatar
-                ? { backgroundColor: avatar.bg, color: avatar.fg }
-                : { backgroundColor: "var(--avatar-mateo-bg)", color: "var(--avatar-mateo-fg)" }
-            }
-          >
-            {avatarInitial}
-          </div>
-          <div>
-            <div className="text-[13px] text-muted-strong">
-              Te invitaron a seguir a
+        {preview ? (
+          <div className="mb-[22px] flex items-center gap-[14px] rounded-[16px] border-[1.5px] border-input-border bg-white px-4 py-[14px]">
+            <div
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full font-display text-[19px] font-semibold"
+              style={{
+                backgroundColor: avatar!.bg,
+                color: avatar!.fg,
+              }}
+            >
+              {avatarInitial}
             </div>
-            <div className="font-display text-[17px] font-semibold text-ink">
-              {childName}
-              {roomName ? ` · ${roomName}` : ""}
+            <div>
+              <div className="text-[13px] text-muted-strong">
+                Te invitaron a seguir a
+              </div>
+              <div className="font-display text-[17px] font-semibold text-ink">
+                {childName}
+                {roomName ? ` · ${roomName}` : ""}
+              </div>
             </div>
           </div>
-        </div>
+        ) : null}
 
         <form onSubmit={handleSubmit}>
           <input type="hidden" name="consent" value={consent ? "on" : ""} />
