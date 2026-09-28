@@ -47,8 +47,8 @@ function ParentsColumn({
           PADRES VINCULADOS
         </div>
         <div className="flex flex-col gap-[14px]">
-          {parents.map((parent) => (
-            <ParentRow key={parent.name} parent={parent} />
+          {parents.map((parent, index) => (
+            <ParentRow key={`${parent.name}-${index}`} parent={parent} />
           ))}
           <button
             type="button"
@@ -70,22 +70,18 @@ function ParentsColumn({
 
 export function ProfileClient({
   kid,
+  parents,
   backHref = "/kids",
 }: {
   kid: Kid;
+  parents: Parent[];
   backHref?: string;
 }) {
-  const [parents, setParents] = useState<Parent[]>(kid.parents ?? []);
   const [linkOpen, setLinkOpen] = useState(false);
 
   const allergyBoxNotes = [kid.allergyNotes, kid.medicalNotes]
     .filter((note): note is string => Boolean(note))
     .join(" · ");
-
-  function handleSubmit(parent: Parent) {
-    setParents((prev) => [...prev, parent]);
-    setLinkOpen(false);
-  }
 
   return (
     <>
@@ -135,11 +131,9 @@ export function ProfileClient({
 
       {linkOpen ? (
         <LinkParentModal
-          open={linkOpen}
           kidName={kid.name}
-          existingParentsCount={parents.length}
+          childId={kid.id}
           onClose={() => setLinkOpen(false)}
-          onSubmit={handleSubmit}
         />
       ) : null}
     </>

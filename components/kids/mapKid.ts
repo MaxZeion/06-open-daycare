@@ -1,7 +1,8 @@
-import type { Tables } from "@/types/supabase";
+import type { Enums, Tables } from "@/types/supabase";
 import { AVATAR_PALETTE, type AllergyTag, type Kid } from "./mockKids";
 
 export type ChildrenRow = Tables<"children">;
+export type Relationship = Enums<"relationship_type">;
 
 export interface RoomOption {
   id: string;
@@ -31,6 +32,26 @@ const TAG_TO_ALLERGY: Record<string, AllergyTag> = {
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+const SPANISH_TO_RELATIONSHIP: Record<string, Relationship> = {
+  Mamá: "mother",
+  "Papá": "father",
+  "Tutor/a": "guardian",
+};
+
+const RELATIONSHIP_TO_SPANISH: Record<Relationship, string> = {
+  mother: "Mamá",
+  father: "Papá",
+  guardian: "Tutor/a",
+};
+
+export function spanishToRelationship(label: string): Relationship | null {
+  return SPANISH_TO_RELATIONSHIP[label] ?? null;
+}
+
+export function relationshipToSpanish(relationship: Relationship): string {
+  return RELATIONSHIP_TO_SPANISH[relationship] ?? "";
+}
+
 export function isUuid(value: string): boolean {
   return UUID_PATTERN.test(value);
 }
@@ -41,6 +62,10 @@ function hashUuid(id: string): number {
     hash = (hash * 31 + id.charCodeAt(i)) | 0;
   }
   return Math.abs(hash);
+}
+
+export function avatarFor(id: string): { bg: string; fg: string } {
+  return AVATAR_PALETTE[hashUuid(id) % AVATAR_PALETTE.length];
 }
 
 function isoToDate(iso: string): Date | null {
@@ -118,7 +143,11 @@ function tagsToSpanishNotes(tags: string[]): string | undefined {
   return `Alergia: ${labels.join(", ")}`;
 }
 
-export function mapChild(row: ChildrenRow, rooms: RoomOption[]): Kid {
+export function mapChild(
+  row: ChildrenRow,
+  rooms: RoomOption[],
+  parentsCount = 0,
+): Kid {
   const room = rooms.find((item) => item.id === row.room_id);
   const trimmedName = row.full_name.trim();
 
@@ -130,7 +159,7 @@ export function mapChild(row: ChildrenRow, rooms: RoomOption[]): Kid {
     avatar: AVATAR_PALETTE[hashUuid(row.id) % AVATAR_PALETTE.length],
     age: ageFromIso(row.birth_date),
     sala: room?.name ?? "",
-    parentsCount: 0,
+    parentsCount,
     parents: [],
     birthDate: formatSpanishDate(row.birth_date),
     entry: formatSpanishMonthYear(row.enrolled_at),
