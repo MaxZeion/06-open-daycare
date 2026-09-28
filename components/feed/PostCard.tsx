@@ -7,12 +7,21 @@ import {
 import { KIND_META } from "./mockPosts";
 import type { Post } from "./mockPosts";
 
-export function PostCard({ post }: { post: Post }) {
+interface PostCardProps {
+  post: Post;
+}
+
+export function PostCard({ post }: PostCardProps) {
   const kind = KIND_META[post.kind];
+  const authorName = post.author.name;
+  const avatarLabel =
+    post.author.initials === "" ? "Anuncio general" : `Avatar de ${authorName}`;
   return (
     <article className="rounded-[20px] border border-border bg-surface px-[22px] py-5 shadow-card">
       <header className="mb-3.5 flex items-center gap-3">
         <div
+          role="img"
+          aria-label={avatarLabel}
           className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full font-display text-[17px] font-semibold"
           style={{ backgroundColor: post.author.bg, color: post.author.fg }}
         >
@@ -23,9 +32,9 @@ export function PostCard({ post }: { post: Post }) {
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <h2 className="font-display text-[16.5px] font-semibold text-ink">
-            {post.author.name}
-          </h2>
+          <p className="font-display text-[16.5px] font-semibold text-ink">
+            {authorName}
+          </p>
           <p className="text-[12.5px] text-muted">
             {post.time} · {post.publishedBy}
           </p>
@@ -63,7 +72,13 @@ export function PostCard({ post }: { post: Post }) {
           {post.comments}
         </span>
         <span className="flex-1" />
-        <button type="button" className="text-sm font-extrabold text-accent-deep">
+        <button
+          type="button"
+          disabled
+          aria-disabled="true"
+          aria-label="Editar (próximamente)"
+          className="text-sm font-extrabold text-accent-deep disabled:opacity-50 disabled:cursor-not-allowed"
+        >
           Editar
         </button>
       </footer>

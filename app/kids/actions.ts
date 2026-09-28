@@ -10,6 +10,7 @@ import {
   isUuid,
   spanishToRelationship,
   textToTags,
+  validateFullName,
   type Relationship,
 } from "@/components/kids/mapKid";
 
@@ -35,8 +36,9 @@ export async function addKid(
   const allergies = String(formData.get("allergies") ?? "");
   const medicalNotes = String(formData.get("medical_notes") ?? "").trim();
 
-  if (fullName.length < 3) {
-    return { error: "Introduce nombre y apellido (mínimo 3 caracteres en el nombre)." };
+  const nameError = validateFullName(fullName);
+  if (nameError) {
+    return { error: nameError };
   }
 
   const parsedBirthDate = parseSpanishDate(birthDate);
@@ -97,14 +99,9 @@ export async function inviteParent(
   const relationshipLabel = String(formData.get("relationship") ?? "").trim();
   const childId = String(formData.get("child_id") ?? "").trim();
 
-  const nameParts = fullName.split(/\s+/).filter(Boolean);
-  if (
-    (nameParts[0] ?? "").length < 3 ||
-    (nameParts[1] ?? "").length === 0
-  ) {
-    return {
-      error: "Introduce nombre y apellido (mínimo 3 caracteres en el nombre).",
-    };
+  const nameError = validateFullName(fullName);
+  if (nameError) {
+    return { error: nameError };
   }
 
   if (!INVITE_EMAIL_RE.test(email)) {

@@ -1,11 +1,18 @@
 "use client";
 
-import { useEffect, useActionState, useRef, useState, useTransition } from "react";
+import {
+  useEffect,
+  useActionState,
+  useId,
+  useRef,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
 import { ChevronDownIcon } from "../shared/icons";
 import { applyDateMask, parseSpanishDate } from "./dateMask";
-import { addKid, type AddKidState } from "../../app/kids/actions";
+import { validateFullName } from "./mapKid";
 import type { RoomOption } from "./mapKid";
+import { addKid, type AddKidState } from "../../app/kids/actions";
 
 type AddKidModalProps = {
   rooms: RoomOption[];
@@ -18,12 +25,14 @@ const FIELD_CLASSES =
 
 const INITIAL_STATE: AddKidState = {};
 
+const FOCUSABLE_SELECTOR =
+  'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
 export function AddKidModal({ rooms, defaultRoomId, onClose }: AddKidModalProps) {
   const [state, formAction, isPending] = useActionState<AddKidState, FormData>(
     addKid,
     INITIAL_STATE,
   );
-  const [isTransitioning, startTransition] = useTransition();
 
   const [name, setName] = useState("");
   const [birthDate, setBirthDate] = useState("");
@@ -31,55 +40,95 @@ export function AddKidModal({ rooms, defaultRoomId, onClose }: AddKidModalProps)
   const [allergies, setAllergies] = useState("");
   const [medicalNotes, setMedicalNotes] = useState("");
   const [attempted, setAttempted] = useState(false);
+
+  const dialogRef = useRef<HTMLDivElement>(null);
   const closedOnSuccess = useRef(false);
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
+
+  const reactId = useId();
+  const ids = {
+    fullName: `${reactId}-full_name`,
+    fullNameError: `${reactId}-full_name-error`,
+    birthDate: `${reactId}-birth_date`,
+    birthDateError: `${reactId}-birth_date-error`,
+    roomId: `${reactId}-room_id`,
+    allergies: `${reactId}-allergies`,
+    medicalNotes: `${reactId}-medical_notes`,
+  };
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
+    const previouslyFocused = document.activeElement as HTMLElement | null;
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = previousOverflow;
+      previouslyFocused?.focus?.();
     };
   }, []);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
-        onClose();
+        onCloseRef.current();
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const dialog = dialogRef.current;
+      if (!dialog) return;
+      const focusables = Array.from(
+        dialog.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
+      ).filter((el) => !el.hasAttribute("disabled"));
+      if (focusables.length === 0) {
+        event.preventDefault();
+        return;
+      }
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const active = document.activeElement;
+      if (event.shiftKey && active === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
       }
     }
     document.addEventListener("keydown", handleKeyDown);
+    const dialog = dialogRef.current;
+    const focusables = dialog
+      ? Array.from(dialog.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR))
+      : [];
+    focusables[0]?.focus();
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [onClose]);
+  }, []);
 
   useEffect(() => {
     if (state.ok && !closedOnSuccess.current) {
       closedOnSuccess.current = true;
-      onClose();
+      onCloseRef.current();
     }
-  }, [state, onClose]);
+  }, [state]);
 
-  const trimmedName = name.trim();
-  const nameParts = trimmedName.split(/\s+/).filter(Boolean);
-  const firstName = nameParts[0] ?? "";
-  const lastName = nameParts[1] ?? "";
-  const nameInvalid = firstName.length < 3 || lastName.length === 0;
-  const dateInvalid = parseSpanishDate(birthDate) === null;
-  const showNameError = attempted && nameInvalid;
-  const showDateError = attempted && dateInvalid;
-  const saving = isPending || isTransitioning;
+  const nameError = validateFullName(name);
+  const dateError =
+    birthDate.length === 0
+      ? "Completa la fecha (dd/mm/aaaa)."
+      : parseSpanishDate(birthDate) === null
+        ? "Fecha no válida."
+        : null;
+  const showNameError = attempted && nameError !== null;
+  const showDateError = attempted && dateError !== null;
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (nameInvalid || dateInvalid) {
+    if (nameError !== null || dateError !== null) {
+      event.preventDefault();
       setAttempted(true);
-      return;
     }
-    const formData = new FormData(event.currentTarget);
-    startTransition(() => {
-      formAction(formData);
-    });
   }
 
   return createPortal(
@@ -88,6 +137,7 @@ export function AddKidModal({ rooms, defaultRoomId, onClose }: AddKidModalProps)
       onClick={onClose}
     >
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-label="Agregar niño"
@@ -108,52 +158,70 @@ export function AddKidModal({ rooms, defaultRoomId, onClose }: AddKidModalProps)
           <button
             type="submit"
             form="add-kid-form"
-            disabled={saving}
-            aria-busy={saving}
+            disabled={isPending}
+            aria-busy={isPending}
             className="text-[15px] font-extrabold text-accent disabled:opacity-60"
           >
-            {saving ? "Guardando…" : "Guardar"}
+            {isPending ? "Guardando…" : "Guardar"}
           </button>
         </header>
 
         <form
           id="add-kid-form"
+          action={formAction}
           onSubmit={handleSubmit}
+          noValidate
           className="overflow-y-auto px-[26px] py-6"
         >
           {state.error ? (
-            <p className="mb-4 rounded-[12px] bg-alert-box-bg px-4 py-3 text-[13.5px] font-bold text-alert-title">
+            <p
+              role="alert"
+              className="mb-4 rounded-[12px] bg-alert-box-bg px-4 py-3 text-[13.5px] font-bold text-alert-title"
+            >
               {state.error}
             </p>
           ) : null}
 
           <div className="mb-[18px]">
-            <div className="mb-2 text-xs font-extrabold tracking-[0.7px] text-muted-strong">
+            <label
+              htmlFor={ids.fullName}
+              className="mb-2 block text-xs font-extrabold tracking-[0.7px] text-muted-strong"
+            >
               NOMBRE COMPLETO
-            </div>
+            </label>
             <input
+              id={ids.fullName}
               name="full_name"
               value={name}
               onChange={(event) => setName(event.target.value)}
               placeholder="Ej. Martina López"
               aria-invalid={showNameError}
+              aria-describedby={showNameError ? ids.fullNameError : undefined}
+              aria-required="true"
               className={`${FIELD_CLASSES} ${
                 showNameError ? "border-field-error" : "border-input-border"
               }`}
             />
             {showNameError ? (
-              <p className="mt-2 text-xs font-bold text-field-error">
-                Introduce nombre y apellido (mínimo 3 caracteres en el nombre).
+              <p
+                id={ids.fullNameError}
+                className="mt-2 text-xs font-bold text-field-error"
+              >
+                {nameError}
               </p>
             ) : null}
           </div>
 
           <div className="mb-[18px] flex gap-[14px]">
             <div className="flex-1">
-              <div className="mb-2 text-xs font-extrabold tracking-[0.7px] text-muted-strong">
+              <label
+                htmlFor={ids.birthDate}
+                className="mb-2 block text-xs font-extrabold tracking-[0.7px] text-muted-strong"
+              >
                 FECHA DE NACIMIENTO
-              </div>
+              </label>
               <input
+                id={ids.birthDate}
                 name="birth_date"
                 value={birthDate}
                 onChange={(event) => setBirthDate(applyDateMask(event.target.value))}
@@ -161,24 +229,31 @@ export function AddKidModal({ rooms, defaultRoomId, onClose }: AddKidModalProps)
                 inputMode="numeric"
                 maxLength={10}
                 aria-invalid={showDateError}
+                aria-describedby={showDateError ? ids.birthDateError : undefined}
+                aria-required="true"
                 className={`${FIELD_CLASSES} ${
                   showDateError ? "border-field-error" : "border-input-border"
                 }`}
               />
               {showDateError ? (
-                <p className="mt-2 text-xs font-bold text-field-error">
-                  {birthDate.length < 10
-                    ? "Completa la fecha (dd/mm/aaaa)."
-                    : "Fecha no válida."}
+                <p
+                  id={ids.birthDateError}
+                  className="mt-2 text-xs font-bold text-field-error"
+                >
+                  {dateError}
                 </p>
               ) : null}
             </div>
             <div className="flex-1">
-              <div className="mb-2 text-xs font-extrabold tracking-[0.7px] text-muted-strong">
+              <label
+                htmlFor={ids.roomId}
+                className="mb-2 block text-xs font-extrabold tracking-[0.7px] text-muted-strong"
+              >
                 SALA
-              </div>
+              </label>
               <div className="relative">
                 <select
+                  id={ids.roomId}
                   name="room_id"
                   value={roomId}
                   onChange={(event) => setRoomId(event.target.value)}
@@ -196,10 +271,14 @@ export function AddKidModal({ rooms, defaultRoomId, onClose }: AddKidModalProps)
           </div>
 
           <div className="mb-[18px]">
-            <div className="mb-2 text-xs font-extrabold tracking-[0.7px] text-muted-strong">
+            <label
+              htmlFor={ids.allergies}
+              className="mb-2 block text-xs font-extrabold tracking-[0.7px] text-muted-strong"
+            >
               ALERGIAS (ETIQUETAS)
-            </div>
+            </label>
             <input
+              id={ids.allergies}
               name="allergies"
               value={allergies}
               onChange={(event) => setAllergies(event.target.value)}
@@ -208,16 +287,22 @@ export function AddKidModal({ rooms, defaultRoomId, onClose }: AddKidModalProps)
             />
           </div>
 
-          <div className="mb-2 text-xs font-extrabold tracking-[0.7px] text-muted-strong">
-            NOTAS MÉDICAS
+          <div className="mb-2">
+            <label
+              htmlFor={ids.medicalNotes}
+              className="mb-2 block text-xs font-extrabold tracking-[0.7px] text-muted-strong"
+            >
+              NOTAS MÉDICAS
+            </label>
+            <textarea
+              id={ids.medicalNotes}
+              name="medical_notes"
+              value={medicalNotes}
+              onChange={(event) => setMedicalNotes(event.target.value)}
+              placeholder="Indicaciones, medicación, contactos…"
+              className={`${FIELD_CLASSES} min-h-[90px] resize-y leading-[1.5] border-input-border`}
+            />
           </div>
-          <textarea
-            name="medical_notes"
-            value={medicalNotes}
-            onChange={(event) => setMedicalNotes(event.target.value)}
-            placeholder="Indicaciones, medicación, contactos…"
-            className={`${FIELD_CLASSES} min-h-[90px] resize-y leading-[1.5] border-input-border`}
-          />
         </form>
       </div>
     </div>,

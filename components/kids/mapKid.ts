@@ -56,6 +56,16 @@ export function isUuid(value: string): boolean {
   return UUID_PATTERN.test(value);
 }
 
+export function validateFullName(raw: string): string | null {
+  const parts = raw.trim().split(/\s+/).filter(Boolean);
+  const firstName = parts[0] ?? "";
+  const lastName = parts[1] ?? "";
+  if (firstName.length < 3 || lastName.length === 0) {
+    return "Introduce nombre y apellido (mínimo 3 caracteres en el nombre).";
+  }
+  return null;
+}
+
 function hashUuid(id: string): number {
   let hash = 0;
   for (let i = 0; i < id.length; i += 1) {
