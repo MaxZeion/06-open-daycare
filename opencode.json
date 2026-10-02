@@ -4,6 +4,10 @@
     "db-schema": {
       "path": "../07-DB-Schema",
       "description": "Schema de base de datos, tablas, columnas y referencias a crear, esto no está implementado en la base de datos actual, solo es para referencia"
+    },
+    "react": {
+      "repository": "reactjs/react.dev",
+      "description": "Documentación oficial de React. Usar para profundizar en patrones; para verificar la versión vigente de un API concreto, prefiere Context7 (resolve-library-id → /websites/react_dev)."
     }
   },
   "permission": {
