@@ -107,14 +107,17 @@ export async function POST(request: Request) {
   const normalizedEmail = email.trim().toLowerCase();
 
   const { data: existing, error: listError } =
-    await adminClient.auth.admin.listUsers({ email: normalizedEmail });
+    await adminClient.auth.admin.listUsers({ perPage: 1000 });
   if (listError) {
     return NextResponse.json(
       { error: "No se pudo verificar el email." },
       { status: 500 },
     );
   }
-  if (existing && Array.isArray(existing.users) && existing.users.length > 0) {
+  if (
+    Array.isArray(existing?.users) &&
+    existing.users.some((u) => u.email?.toLowerCase() === normalizedEmail)
+  ) {
     return NextResponse.json(
       { error: "Este email ya tiene una cuenta." },
       { status: 409 },
