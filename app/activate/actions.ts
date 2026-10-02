@@ -96,14 +96,20 @@ export async function activate(
     return { error: "No se pudo completar la activación. Inténtalo de nuevo." };
   }
 
+  // SPEC 13: el signup ya no envía `daycare_id` ni `role` en metadata
+  // (privilege escalation vector). El Auth Hook `before_user_created`
+  // rechaza metadata sensible; el trigger BEFORE INSERT
+  // `on_auth_user_invitation_assigned` (migration 13) asigna
+  // `daycare_id` + `role='parent'` desde la invitación de la BD, buscando
+  // por `invitation_code` que pasamos aquí. `full_name` sí pasa tal cual
+  // (no es sensible).
   const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
     email,
     password,
     options: {
       data: {
-        daycare_id: invite.daycare_id,
-        role: "parent",
         full_name: invite.parent_full_name,
+        invitation_code: code,
       },
     },
   });
@@ -112,7 +118,9 @@ export async function activate(
     if (signUpError.message.toLowerCase().includes("already registered")) {
       return { error: "Este email ya tiene una cuenta. Inicia sesión." };
     }
-    return { error: "No se pudo crear la cuenta. Inténtalo de nuevo." };
+    // Mensajes del Auth Hook `before_user_created` (Edge Function) ya vienen
+    // en español y son seguros para mostrar al usuario tal cual.
+    return { error: signUpError.message };
   }
 
   const parentUser = signUpData.user;
