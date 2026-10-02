@@ -28,7 +28,11 @@
 // Los mensajes de error van en español porque la app es en español
 // (SPEC 06).
 
-import { Webhook } from "standardwebhooks";
+// Import directo desde la URL (esm.sh) en lugar de via import map, porque
+// el MCP de Supabase deploya edge functions sin preservar el `deno.json`
+// del deploy anterior. La URL sigue siendo pinneable y la lib no cambia
+// entre deploys.
+import { Webhook } from "https://esm.sh/standardwebhooks@1.0.0";
 
 const secrets = (Deno.env.get("BEFORE_USER_CREATED_HOOK_SECRET") ?? "")
   .split("|")
