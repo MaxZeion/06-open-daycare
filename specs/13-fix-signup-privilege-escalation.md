@@ -172,6 +172,7 @@ app/
 - **No:** deshabilitar el signup público en `config.toml` o Dashboard. El hook ya lo cierra con la regla de `invitation_code`. Mantener el flag default de Supabase para no añadir fricción de provisioning.
 - **No:** agregar una columna `status='pending'` al signup directo (no se rechaza, queda en pending). El hook rechaza directamente.
 - **No:** migrar SPEC 12. El SPEC 13 la deja como módulo; las decisiones de SPEC 12 se mantienen. Si en el futuro hay que referenciar este cambio, se hace en SPEC 12 con un addendum en la sección de "Decisions".
+- **Addendum (Phase 4, Step 3 omitido):** este proyecto es Supabase managed (cloud), no usa Supabase CLI local. `supabase/config.toml` no existe en el repo. La activación del Auth Hook se hace desde el Dashboard de Supabase (Authentication → Hooks → "Before User Created") o vía Management API, no commiteando un `config.toml`. El Step 3 del Implementation Plan se omite; el resto del spec no se ve afectado.
 
 ## Risks
 
