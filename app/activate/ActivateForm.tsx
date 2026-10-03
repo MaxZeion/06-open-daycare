@@ -4,7 +4,7 @@ import { useState, useActionState, useTransition } from "react";
 import Link from "next/link";
 import { CheckIcon, SunIcon } from "@/components/shared/icons";
 import { activate, type ActivateState } from "./actions";
-import { AVATAR_PALETTE } from "@/components/kids/mockKids";
+import { AVATAR_PALETTE } from "@/app/(staff)/_components/kids/mockKids";
 
 const CODE_RE = /^[A-Z0-9]{5}$/;
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;

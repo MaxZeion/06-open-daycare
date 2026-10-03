@@ -1,8 +1,11 @@
 import { cookies } from "next/headers";
-import { AppShell } from "@/components/shared/AppShell";
-import { getCurrentUser } from "@/utils/supabase/auth";
+import { StaffShell } from "@/components/shared/StaffShell";
+import {
+  DEFAULT_FAMILY_NEXT,
+  requireRole,
+} from "@/utils/supabase/auth";
 import { createClient } from "@/utils/supabase/server";
-import { mapChild, type ChildrenRow, type RoomOption } from "@/components/kids/mapKid";
+import { mapChild, type ChildrenRow, type RoomOption } from "@/app/(staff)/_components/kids/mapKid";
 import { KidsPageClient } from "./KidsPageClient";
 
 type PageProps = {
@@ -10,7 +13,7 @@ type PageProps = {
 };
 
 export default async function Page({ searchParams }: PageProps) {
-  await getCurrentUser("/kids");
+  await requireRole("staff", DEFAULT_FAMILY_NEXT, "/kids");
 
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
@@ -47,8 +50,8 @@ export default async function Page({ searchParams }: PageProps) {
     : (rooms[0]?.id ?? "");
 
   return (
-    <AppShell active="kids" kids={kids}>
+    <StaffShell active="kids" kids={kids}>
       <KidsPageClient rooms={rooms} kids={kids} selectedRoomId={selectedRoomId} />
-    </AppShell>
+    </StaffShell>
   );
 }

@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ArrowLeftIcon, PlusIcon, SunIcon } from "../../../components/shared/icons";
-import { AllergyBox } from "../../../components/kids/AllergyBox";
-import { InfoRow } from "../../../components/kids/InfoRow";
-import { LinkParentModal } from "../../../components/kids/LinkParentModal";
-import { ParentRow } from "../../../components/kids/ParentRow";
-import type { Kid, Parent } from "../../../components/kids/mockKids";
+import { ArrowLeftIcon, PlusIcon, SunIcon } from "@/components/shared/icons";
+import { AllergyBox } from "@/app/(staff)/_components/kids/AllergyBox";
+import { InfoRow } from "@/app/(staff)/_components/kids/InfoRow";
+import { LinkParentModal } from "@/app/(staff)/_components/kids/LinkParentModal";
+import { ParentRow } from "@/app/(staff)/_components/kids/ParentRow";
+import type { Kid, Parent } from "@/app/(staff)/_components/kids/mockKids";
 
 function InfoCard({ kid }: { kid: Kid }) {
   const rows = [

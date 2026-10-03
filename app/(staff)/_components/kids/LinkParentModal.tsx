@@ -2,8 +2,8 @@
 
 import { useEffect, useActionState, useRef, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
-import { CloseIcon, InfoCircleIcon, SendIcon } from "../shared/icons";
-import { inviteParent, type InviteParentState } from "../../app/kids/actions";
+import { CloseIcon, InfoCircleIcon, SendIcon } from "@/components/shared/icons";
+import { inviteParent, type InviteParentState } from "@/app/(staff)/kids/actions";
 
 const RELACIONES = ["Mamá", "Papá", "Tutor/a"] as const;
 type Relacion = (typeof RELACIONES)[number];

@@ -3,7 +3,7 @@
 import { cookies } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
 import { createAdminClient } from "@/utils/supabase/admin";
-import type { Relationship } from "@/components/kids/mapKid";
+import type { Relationship } from "@/app/(staff)/_components/kids/mapKid";
 
 export interface ActivateState {
   error?: string;
