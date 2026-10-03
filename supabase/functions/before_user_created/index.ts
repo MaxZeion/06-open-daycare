@@ -39,13 +39,11 @@ const secrets = (Deno.env.get("BEFORE_USER_CREATED_HOOK_SECRET") ?? "")
   .map((s) => s.trim().replace(/^v1,whsec_/, ""))
   .filter(Boolean);
 
-if (secrets.length === 0) {
-  throw new Error(
-    "BEFORE_USER_CREATED_HOOK_SECRET no está configurada en el ambiente de la edge function. " +
-      "Obtén el secret en Dashboard → Authentication → Hooks → Before User Created.",
-  );
-}
-
+// Si no hay secrets, devolvemos 401 en runtime (fail closed: no acepta
+// requests sin verificación HMAC posible). El operador detecta el
+// problema viendo el 401 + el log de la edge function.
+// Antes este caso lanzaba un `throw` global que mataba el worker con
+// un 500 WORKER_ERROR, indistinguible de un crash real.
 const webhooks = secrets.map((secret) => new Webhook(secret));
 
 type HookEvent = {
@@ -61,6 +59,21 @@ type HookDecision =
   | { decision: "reject"; message: string };
 
 Deno.serve(async (req: Request) => {
+  // Fail closed si el secret no está configurado. Distinto de 401
+  // "firma inválida" para que el operador pueda detectar el problema
+  // (Dashboard → Authentication → Hooks → Before User Created).
+  if (webhooks.length === 0) {
+    return new Response(
+      JSON.stringify({
+        error: {
+          message:
+            "BEFORE_USER_CREATED_HOOK_SECRET no está configurada en el ambiente de la edge function.",
+        },
+      }),
+      { status: 500, headers: { "Content-Type": "application/json" } },
+    );
+  }
+
   const rawBody = await req.text();
   const headers = Object.fromEntries(req.headers);
 
