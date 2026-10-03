@@ -1,11 +1,7 @@
-import { randomUUID } from "node:crypto";
-import { mkdir, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { UploadValidationError } from "./errors";
+import { validateFilename } from "./filename";
 
-const BUCKET_DIR = join(process.cwd(), "public", "uploads", "posts");
-const PUBLIC_PREFIX = "/uploads/posts";
-const MAX_BYTES = 5 * 1024 * 1024;
-const ALLOWED_MIME = new Set([
+export const DEFAULT_IMAGE_MIME: ReadonlySet<string> = new Set([
   "image/jpeg",
   "image/png",
   "image/webp",
@@ -16,7 +12,7 @@ const ALLOWED_MIME = new Set([
   "image/bmp",
 ]);
 
-const EXT_BY_MIME: Record<string, string> = {
+export const IMAGE_EXT_BY_MIME: Record<string, string> = {
   "image/jpeg": "jpg",
   "image/png": "png",
   "image/webp": "webp",
@@ -45,7 +41,10 @@ function bytesToAscii(bytes: Uint8Array, start: number, length: number): string 
   return out;
 }
 
-async function matchesDeclaredMime(file: File, declaredMime: string): Promise<boolean> {
+async function matchesDeclaredMime(
+  file: File,
+  declaredMime: string,
+): Promise<boolean> {
   const head = new Uint8Array(await file.slice(0, 12).arrayBuffer());
 
   switch (declaredMime) {
@@ -90,7 +89,6 @@ async function matchesDeclaredMime(file: File, declaredMime: string): Promise<bo
     case "image/heic":
     case "image/heif": {
       if (head.length < 12) return false;
-      // ISO BMFF: bytes 4-7 son "ftyp", bytes 8-11 el major brand.
       const ftyp =
         head[4] === 0x66 &&
         head[5] === 0x74 &&
@@ -108,52 +106,92 @@ async function matchesDeclaredMime(file: File, declaredMime: string): Promise<bo
         head[6] === 0x79 &&
         head[7] === 0x70;
       if (!ftyp) return false;
-      const brand = bytesToAscii(head, 8, 4);
-      return brand === "avif";
+      return bytesToAscii(head, 8, 4) === "avif";
     }
     default:
       return false;
   }
 }
 
-export interface SavePhotoResult {
-  url: string;
+export interface ImageFileOptions {
+  allowedMime?: ReadonlySet<string>;
+  maxBytes?: number;
+  verifyContent?: boolean;
 }
 
-export class UploadValidationError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "UploadValidationError";
-  }
-}
-
-export async function savePhotoToBucket(file: File): Promise<SavePhotoResult> {
-  if (!ALLOWED_MIME.has(file.type)) {
+export function validateMime(
+  file: { name: string; type: string },
+  allowedMime: ReadonlySet<string>,
+): void {
+  if (!allowedMime.has(file.type)) {
     throw new UploadValidationError(
-      `La foto "${file.name}" no es un formato soportado (JPEG, PNG, WebP, GIF, HEIC, AVIF, BMP).`,
+      `La foto "${file.name}" no es un formato soportado (${[...allowedMime].join(", ")}).`,
     );
   }
+}
+
+export function validateSize(
+  file: { name: string; size: number },
+  maxBytes: number,
+): void {
   if (file.size <= 0) {
-    throw new UploadValidationError("La foto está vacía.");
+    throw new UploadValidationError(`La foto "${file.name}" está vacía.`);
   }
-  if (file.size > MAX_BYTES) {
+  if (file.size > maxBytes) {
     throw new UploadValidationError(
-      `La foto ${file.name} supera 5MB (${(file.size / 1024 / 1024).toFixed(1)}MB).`,
+      `La foto "${file.name}" supera el tamaño máximo (${(maxBytes / 1024 / 1024).toFixed(1)}MB).`,
     );
   }
-  if (!(await matchesDeclaredMime(file, file.type))) {
+}
+
+export async function validateMagicBytes(
+  file: File,
+  declaredMime: string,
+): Promise<boolean> {
+  return matchesDeclaredMime(file, declaredMime);
+}
+
+export async function validateImageFile(
+  file: File,
+  options?: ImageFileOptions,
+): Promise<void> {
+  const allowedMime = options?.allowedMime ?? DEFAULT_IMAGE_MIME;
+  const maxBytes = options?.maxBytes ?? 5 * 1024 * 1024;
+  const verifyContent = options?.verifyContent ?? true;
+
+  validateMime(file, allowedMime);
+  validateFilename(file);
+  validateSize(file, maxBytes);
+
+  if (verifyContent) {
+    const ok = await validateMagicBytes(file, file.type);
+    if (!ok) {
+      throw new UploadValidationError(
+        `La foto "${file.name}" no parece un ${file.type} válido (contenido no reconocido).`,
+      );
+    }
+  }
+}
+
+export interface BatchOptions {
+  maxFiles?: number;
+  maxTotalBytes?: number;
+}
+
+export function validateBatch(files: File[], options?: BatchOptions): void {
+  const maxFiles = options?.maxFiles ?? 5;
+  const maxTotalBytes = options?.maxTotalBytes ?? 25 * 1024 * 1024;
+
+  if (files.length > maxFiles) {
     throw new UploadValidationError(
-      `La foto "${file.name}" no parece un ${file.type} válido (contenido no reconocido).`,
+      `Máximo ${maxFiles} fotos (has subido ${files.length}).`,
     );
   }
 
-  const ext = EXT_BY_MIME[file.type];
-  const name = `${randomUUID()}.${ext}`;
-  const target = join(BUCKET_DIR, name);
-
-  await mkdir(BUCKET_DIR, { recursive: true });
-  const buffer = Buffer.from(await file.arrayBuffer());
-  await writeFile(target, buffer);
-
-  return { url: `${PUBLIC_PREFIX}/${name}` };
+  const totalBytes = files.reduce((sum, file) => sum + file.size, 0);
+  if (totalBytes > maxTotalBytes) {
+    throw new UploadValidationError(
+      `Las fotos suman ${(totalBytes / 1024 / 1024).toFixed(1)}MB; el máximo total es ${(maxTotalBytes / 1024 / 1024).toFixed(0)}MB.`,
+    );
+  }
 }
