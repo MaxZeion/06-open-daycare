@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronRightIcon } from "../shared/icons";
+import { ChevronRightIcon } from "@/components/shared/icons";
 import type { Kid } from "./mockKids";
 
 function parentsLabel(count: number): string {

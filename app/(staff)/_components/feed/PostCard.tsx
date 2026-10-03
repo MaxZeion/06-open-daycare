@@ -3,7 +3,7 @@ import {
   MegaphoneIcon,
   MessageIcon,
   PhotoIcon,
-} from "../shared/icons";
+} from "@/components/shared/icons";
 import { KIND_META } from "./mockPosts";
 import type { Post } from "./mockPosts";
 

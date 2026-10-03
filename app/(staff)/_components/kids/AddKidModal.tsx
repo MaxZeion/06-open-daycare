@@ -8,11 +8,11 @@ import {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
-import { ChevronDownIcon } from "../shared/icons";
+import { ChevronDownIcon } from "@/components/shared/icons";
 import { applyDateMask, parseSpanishDate } from "./dateMask";
 import { validateFullName } from "./mapKid";
 import type { RoomOption } from "./mapKid";
-import { addKid, type AddKidState } from "../../app/kids/actions";
+import { addKid, type AddKidState } from "@/app/(staff)/kids/actions";
 
 type AddKidModalProps = {
   rooms: RoomOption[];

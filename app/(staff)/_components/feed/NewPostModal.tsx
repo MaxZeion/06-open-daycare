@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { ImagePlusIcon, PhotoIcon } from "../shared/icons";
+import { ImagePlusIcon, PhotoIcon } from "@/components/shared/icons";
 import type { Kid } from "../kids/mockKids";
 import type { PostKind } from "./mockPosts";
 

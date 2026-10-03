@@ -5,6 +5,9 @@ import type { CurrentUser, CurrentUserRole } from "./types";
 
 export type { CurrentUser, CurrentUserRole } from "./types";
 
+export const DEFAULT_STAFF_NEXT = "/";
+export const DEFAULT_FAMILY_NEXT = "/familiar";
+
 interface AppMetadata {
   daycare_id?: string;
   role?: CurrentUserRole;
@@ -13,6 +16,10 @@ interface AppMetadata {
 
 function isCurrentUserRole(value: unknown): value is CurrentUserRole {
   return value === "staff" || value === "parent" || value === "admin";
+}
+
+function homeForRole(role: CurrentUserRole): string {
+  return role === "parent" ? DEFAULT_FAMILY_NEXT : DEFAULT_STAFF_NEXT;
 }
 
 export async function getCurrentUser(nextPath?: string): Promise<CurrentUser> {
@@ -43,4 +50,16 @@ export async function getCurrentUser(nextPath?: string): Promise<CurrentUser> {
     role,
     fullName: full_name,
   };
+}
+
+export async function requireRole(
+  role: CurrentUserRole,
+  redirectIfMismatch?: string,
+  loginNext?: string,
+): Promise<CurrentUser> {
+  const user = await getCurrentUser(loginNext);
+  if (user.role !== role) {
+    redirect(redirectIfMismatch ?? homeForRole(user.role));
+  }
+  return user;
 }

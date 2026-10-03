@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { useFeed } from "../feed/FeedContext";
-import { Sidebar } from "./Sidebar";
-import type { SectionId } from "./Sidebar";
+import { useFeed } from "@/app/(staff)/_components/feed/FeedContext";
+import { StaffSidebar } from "./StaffSidebar";
+import type { SectionId } from "./StaffSidebar";
 import type { CurrentUser } from "@/utils/supabase/types";
 import { MenuIcon, PlusIcon, SunIcon } from "./icons";
 
-export function AppShellClient({
+export function StaffShellClient({
   children,
   currentUser,
   active = "feed",
@@ -22,7 +22,7 @@ export function AppShellClient({
   return (
     <div className="flex h-dvh">
       <div className="hidden h-full md:block">
-        <Sidebar active={active} currentUser={currentUser} />
+        <StaffSidebar active={active} currentUser={currentUser} />
       </div>
 
       {drawerOpen ? (
@@ -34,7 +34,7 @@ export function AppShellClient({
             className="absolute inset-0 bg-[rgba(63,54,46,0.35)]"
           />
           <div className="absolute inset-y-0 left-0 shadow-[0_10px_40px_rgba(120,90,60,0.35)]">
-            <Sidebar active={active} currentUser={currentUser} />
+<StaffSidebar active={active} currentUser={currentUser} />
           </div>
         </div>
       ) : null}

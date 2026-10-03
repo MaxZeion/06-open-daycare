@@ -71,7 +71,7 @@ function NavItemView({ item, active }: { item: NavItem; active: boolean }) {
   );
 }
 
-export function Sidebar({
+export function StaffSidebar({
   active = "feed",
   currentUser,
 }: {

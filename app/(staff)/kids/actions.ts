@@ -5,14 +5,14 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
 import { getCurrentUser } from "@/utils/supabase/auth";
 import { sendInvitationEmail } from "@/utils/email";
-import { parseSpanishDate } from "@/components/kids/dateMask";
+import { parseSpanishDate } from "@/app/(staff)/_components/kids/dateMask";
 import {
   isUuid,
   spanishToRelationship,
   textToTags,
   validateFullName,
   type Relationship,
-} from "@/components/kids/mapKid";
+} from "@/app/(staff)/_components/kids/mapKid";
 
 export interface AddKidState {
   error?: string;

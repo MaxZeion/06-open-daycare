@@ -1,4 +1,4 @@
-import { AlertTriangleIcon } from "../shared/icons";
+import { AlertTriangleIcon } from "@/components/shared/icons";
 
 export function AllergyBox({
   title = "Alergias y notas",

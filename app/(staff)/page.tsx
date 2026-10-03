@@ -1,12 +1,15 @@
 import { cookies } from "next/headers";
-import { AppShell } from "@/components/shared/AppShell";
-import { getCurrentUser } from "@/utils/supabase/auth";
+import { StaffShell } from "@/components/shared/StaffShell";
+import {
+  DEFAULT_FAMILY_NEXT,
+  requireRole,
+} from "@/utils/supabase/auth";
 import { createClient } from "@/utils/supabase/server";
-import { mapChild, type ChildrenRow, type RoomOption } from "@/components/kids/mapKid";
-import { FeedPageClient } from "./feed/FeedPageClient";
+import { mapChild, type ChildrenRow, type RoomOption } from "@/app/(staff)/_components/kids/mapKid";
+import { FeedPageClient } from "./_components/feed/FeedPageClient";
 
 export default async function Page() {
-  await getCurrentUser("/");
+  await requireRole("staff", DEFAULT_FAMILY_NEXT, "/");
 
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
@@ -31,8 +34,8 @@ export default async function Page() {
   );
 
   return (
-    <AppShell active="feed" kids={kids}>
+    <StaffShell active="feed" kids={kids}>
       <FeedPageClient />
-    </AppShell>
+    </StaffShell>
   );
 }

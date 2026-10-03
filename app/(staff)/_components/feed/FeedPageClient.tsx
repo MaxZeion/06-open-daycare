@@ -1,8 +1,8 @@
 "use client";
 
-import { PostCard } from "../../components/feed/PostCard";
-import { useFeed } from "../../components/feed/FeedContext";
-import { CameraIcon } from "../../components/shared/icons";
+import { PostCard } from "./PostCard";
+import { useFeed } from "./FeedContext";
+import { CameraIcon } from "@/components/shared/icons";
 
 export function FeedPageClient() {
   const { posts, openModal } = useFeed();

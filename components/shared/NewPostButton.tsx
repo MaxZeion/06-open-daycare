@@ -1,6 +1,6 @@
 "use client";
 
-import { useFeed } from "../feed/FeedContext";
+import { useFeed } from "@/app/(staff)/_components/feed/FeedContext";
 import { PlusIcon } from "./icons";
 
 export function NewPostButton() {

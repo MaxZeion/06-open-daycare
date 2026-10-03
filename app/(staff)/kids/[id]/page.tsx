@@ -1,8 +1,11 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
-import { AppShell } from "../../../components/shared/AppShell";
-import { ArrowLeftIcon } from "../../../components/shared/icons";
-import { getCurrentUser } from "@/utils/supabase/auth";
+import { StaffShell } from "@/components/shared/StaffShell";
+import { ArrowLeftIcon } from "@/components/shared/icons";
+import {
+  DEFAULT_FAMILY_NEXT,
+  requireRole,
+} from "@/utils/supabase/auth";
 import { createClient } from "@/utils/supabase/server";
 import {
   avatarFor,
@@ -11,8 +14,8 @@ import {
   type ChildrenRow,
   type Relationship,
   type RoomOption,
-} from "@/components/kids/mapKid";
-import type { Parent } from "@/components/kids/mockKids";
+} from "@/app/(staff)/_components/kids/mapKid";
+import type { Parent } from "@/app/(staff)/_components/kids/mockKids";
 import { ProfileClient } from "./ProfileClient";
 
 type ParentLinkRow = {
@@ -100,7 +103,7 @@ export default async function KidProfilePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  await getCurrentUser(`/kids/${id}`);
+  await requireRole("staff", DEFAULT_FAMILY_NEXT, `/kids/${id}`);
 
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
@@ -129,7 +132,7 @@ export default async function KidProfilePage({
   const parents = kid ? await fetchParents(supabase, kid.id) : [];
 
   return (
-    <AppShell active="kids" kids={kids}>
+    <StaffShell active="kids" kids={kids}>
       <div className="mx-auto w-full max-w-[820px] px-5 pt-8 pb-24 md:px-10 md:pt-[34px] md:pb-20">
         {kid ? (
           <ProfileClient
@@ -141,6 +144,6 @@ export default async function KidProfilePage({
           <NotFound />
         )}
       </div>
-    </AppShell>
+    </StaffShell>
   );
 }

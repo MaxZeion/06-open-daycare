@@ -2,12 +2,12 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { PlusIcon, SearchIcon } from "../../components/shared/icons";
-import { KidCard } from "../../components/kids/KidCard";
-import { AddKidModal } from "../../components/kids/AddKidModal";
-import { RoomTabs } from "../../components/kids/RoomTabs";
-import type { Kid } from "../../components/kids/mockKids";
-import type { RoomOption } from "../../components/kids/mapKid";
+import { PlusIcon, SearchIcon } from "@/components/shared/icons";
+import { KidCard } from "@/app/(staff)/_components/kids/KidCard";
+import { AddKidModal } from "@/app/(staff)/_components/kids/AddKidModal";
+import { RoomTabs } from "@/app/(staff)/_components/kids/RoomTabs";
+import type { Kid } from "@/app/(staff)/_components/kids/mockKids";
+import type { RoomOption } from "@/app/(staff)/_components/kids/mapKid";
 
 type KidsPageClientProps = {
   rooms: RoomOption[];
