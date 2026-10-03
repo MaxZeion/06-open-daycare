@@ -7,8 +7,10 @@
 -- el feed del mismo daycare que su staff.
 --
 -- Resuelve:
---   - Añade el valor 'mood' al enum `post_type` (SPEC 07 introdujo la
---     píldora ÁNIMO en la UI; el esquema destino no la contemplaba).
+--   - Crea el enum `post_type` con los 7 valores del esquema destino
+--     (`meal` / `nap` / `activity` / `achievement` / `mood` / `photo` /
+--     `announcement`); incluye `mood` que la UI ya maneja como ÁNIMO
+--     desde SPEC 07 pero la DB no contemplaba.
 --   - Crea `posts`, `post_children` y `post_photos` con FKs, índices, RLS
 --     restrictiva y grants endurecidos (mismo patrón que SPEC 11/migration 11).
 --   - Helper SECURITY DEFINER `daycare_of_post(post)` para que las policies
@@ -28,42 +30,26 @@
 --   - daily_summaries.
 
 -- ========================================================================
--- ENUM: añadir 'mood' a post_type (escrito al inicio, antes de los CREATE
--- que referencian el tipo). El valor queda inutilizable dentro de la misma
--- transacción (limitación de Postgres para ADD VALUE) pero el seed no lo
--- necesita: usa achievement / activity / announcement. Cuando la UI
--- publique Ánimo en otra sesión, el valor ya estará committed.
+-- ENUM: crear post_type con los 7 valores del esquema destino
 -- ========================================================================
+-- El DB no tenía `post_type` todavía (las tablas `posts` se traen en este
+-- spec). Creamos el enum con los 7 valores del doc de schema
+-- (`../07-DB-Schema/opendaycare-database-schema.md`), incluyendo `mood`
+-- que la UI ya maneja como ÁNIMO desde SPEC 07 pero la DB no contemplaba.
 
-alter type public.post_type add value 'mood';
-
--- ========================================================================
--- HELPER: daycare_of_post(post) → uuid  (SECURITY DEFINER, bypass RLS)
--- ========================================================================
--- Resuelve a qué daycare pertenece un post via `posts.author_id →
--- public.users.daycare_id`. SECURITY DEFINER + `set search_path = ''`
--- evita el ciclo con la policy `users_select_*` de public.users y elimina
--- vectores de search-path injection. Patrón idéntico a los helpers
--- `daycare_of_child` y `daycare_of_room` introducidos en migration 11.
-
-create or replace function public.daycare_of_post(p_post_id uuid)
-returns uuid
-language sql
-security definer
-set search_path = ''
-stable
-as $$
-  select u.daycare_id
-    from public.posts p
-    join public.users  u on u.id = p.author_id
-   where p.id = p_post_id;
-$$;
-
-revoke execute on function public.daycare_of_post(uuid) from public, anon;
-grant  execute on function public.daycare_of_post(uuid) to authenticated;
+create type public.post_type as enum (
+  'meal',
+  'nap',
+  'activity',
+  'achievement',
+  'mood',
+  'photo',
+  'announcement'
+);
 
 -- ========================================================================
--- TABLAS: posts, post_children, post_photos
+-- TABLAS: posts, post_children, post_photos (orden: padres antes que
+-- hijas por las FKs; antes del helper y policy que las referencian)
 -- ========================================================================
 
 create table public.posts (
@@ -101,6 +87,33 @@ create table public.post_photos (
 );
 
 create index post_photos_post_id_idx on public.post_photos (post_id, position);
+
+-- ========================================================================
+-- HELPER: daycare_of_post(post) → uuid  (SECURITY DEFINER, bypass RLS)
+-- ========================================================================
+-- Resuelve a qué daycare pertenece un post via `posts.author_id →
+-- public.users.daycare_id`. SECURITY DEFINER + `set search_path = ''`
+-- evita el ciclo con la policy `users_select_*` de public.users y elimina
+-- vectores de search-path injection. Patrón idéntico a los helpers
+-- `daycare_of_child` y `daycare_of_room` introducidos en migration 11.
+-- Se crea DESPUÉS de las tablas porque su body las referencia (Postgres
+-- valida las referencias al crear la función).
+
+create or replace function public.daycare_of_post(p_post_id uuid)
+returns uuid
+language sql
+security definer
+set search_path = ''
+stable
+as $$
+  select u.daycare_id
+    from public.posts p
+    join public.users  u on u.id = p.author_id
+   where p.id = p_post_id;
+$$;
+
+revoke execute on function public.daycare_of_post(uuid) from public, anon;
+grant  execute on function public.daycare_of_post(uuid) to authenticated;
 
 -- ========================================================================
 -- UPDATED_AT trigger en posts (reusa set_updated_at de migration 08)

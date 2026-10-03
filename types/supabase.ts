@@ -184,6 +184,125 @@ export type Database = {
           },
         ]
       }
+      post_children: {
+        Row: {
+          child_id: string
+          post_id: string
+        }
+        Insert: {
+          child_id: string
+          post_id: string
+        }
+        Update: {
+          child_id?: string
+          post_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_children_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_children_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      post_photos: {
+        Row: {
+          created_at: string
+          height: number | null
+          id: string
+          position: number
+          post_id: string
+          url: string
+          width: number | null
+        }
+        Insert: {
+          created_at?: string
+          height?: number | null
+          id?: string
+          position?: number
+          post_id: string
+          url: string
+          width?: number | null
+        }
+        Update: {
+          created_at?: string
+          height?: number | null
+          id?: string
+          position?: number
+          post_id?: string
+          url?: string
+          width?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_photos_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      posts: {
+        Row: {
+          author_id: string
+          body: string
+          created_at: string
+          id: string
+          published_at: string
+          room_id: string | null
+          title: string | null
+          type: Database["public"]["Enums"]["post_type"]
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          body: string
+          created_at?: string
+          id?: string
+          published_at?: string
+          room_id?: string | null
+          title?: string | null
+          type: Database["public"]["Enums"]["post_type"]
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          created_at?: string
+          id?: string
+          published_at?: string
+          room_id?: string | null
+          title?: string | null
+          type?: Database["public"]["Enums"]["post_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "posts_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "posts_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rooms: {
         Row: {
           created_at: string
@@ -266,6 +385,7 @@ export type Database = {
     }
     Functions: {
       daycare_of_child: { Args: { p_child_id: string }; Returns: string }
+      daycare_of_post: { Args: { p_post_id: string }; Returns: string }
       email_exists: { Args: { p_email: string }; Returns: boolean }
       expire_invitation: {
         Args: { p_invitation_id: string }
@@ -290,6 +410,14 @@ export type Database = {
     Enums: {
       child_status: "active" | "archived"
       invitation_status: "pending" | "accepted" | "expired" | "cancelled"
+      post_type:
+        | "meal"
+        | "nap"
+        | "activity"
+        | "achievement"
+        | "mood"
+        | "photo"
+        | "announcement"
       relationship_type: "mother" | "father" | "guardian"
       user_role: "staff" | "parent" | "admin"
       user_status: "pending" | "active"
@@ -355,7 +483,7 @@ export type TablesInsert<
         Insert: infer I
       }
       ? I
-        : never
+      : never
     : never
 
 export type TablesUpdate<
@@ -380,7 +508,7 @@ export type TablesUpdate<
         Update: infer U
       }
       ? U
-        : never
+      : never
     : never
 
 export type Enums<
@@ -397,7 +525,7 @@ export type Enums<
 }
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    ? Database["public"]["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
 
 export type CompositeTypes<
@@ -422,6 +550,15 @@ export const Constants = {
     Enums: {
       child_status: ["active", "archived"],
       invitation_status: ["pending", "accepted", "expired", "cancelled"],
+      post_type: [
+        "meal",
+        "nap",
+        "activity",
+        "achievement",
+        "mood",
+        "photo",
+        "announcement",
+      ],
       relationship_type: ["mother", "father", "guardian"],
       user_role: ["staff", "parent", "admin"],
       user_status: ["pending", "active"],
