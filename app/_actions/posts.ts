@@ -13,6 +13,7 @@ import {
 } from "@/utils/uploads";
 
 const MAX_PHOTOS = 5;
+const MAX_TOTAL_BYTES = 25 * 1024 * 1024;
 
 export type CreatePostResult =
   | { ok: true }
@@ -68,6 +69,14 @@ export async function createPostAction(
     return {
       ok: false,
       error: `Máximo ${MAX_PHOTOS} fotos (has subido ${files.length}).`,
+    };
+  }
+
+  const totalBytes = files.reduce((sum, file) => sum + file.size, 0);
+  if (totalBytes > MAX_TOTAL_BYTES) {
+    return {
+      ok: false,
+      error: `Las fotos suman ${(totalBytes / 1024 / 1024).toFixed(1)}MB; el máximo total es ${MAX_TOTAL_BYTES / 1024 / 1024}MB.`,
     };
   }
 
