@@ -64,6 +64,7 @@ export function NewPostModal({ kids }: { kids: Kid[] }) {
   const [files, setFiles] = useState<File[]>([]);
   const [attempted, setAttempted] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fileInputId = useId();
   const descriptionId = useId();
@@ -93,6 +94,16 @@ export function NewPostModal({ kids }: { kids: Kid[] }) {
   }, [modalOpen]);
 
   useEffect(() => {
+    const input = fileInputRef.current;
+    if (!input) return;
+    const dt = new DataTransfer();
+    for (const f of files) {
+      dt.items.add(f);
+    }
+    input.files = dt.files;
+  }, [files]);
+
+  useEffect(() => {
     if (!modalOpen) return;
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
@@ -105,6 +116,16 @@ export function NewPostModal({ kids }: { kids: Kid[] }) {
     };
   }, [modalOpen, closeModal]);
 
+  const [openCount, setOpenCount] = useState(0);
+
+  useEffect(() => {
+    if (modalOpen) {
+      setOpenCount((c) => c + 1);
+      resetFields();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [modalOpen]);
+
   function resetFields() {
     setSelectedIds([]);
     setAllRoom(false);
@@ -116,8 +137,6 @@ export function NewPostModal({ kids }: { kids: Kid[] }) {
 
   useEffect(() => {
     if (state.ok) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      resetFields();
       closeModal();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -205,6 +224,7 @@ export function NewPostModal({ kids }: { kids: Kid[] }) {
         </header>
 
         <form
+          key={openCount}
           id="new-post-form"
           action={formAction}
           onSubmit={handleSubmit}
@@ -383,11 +403,12 @@ export function NewPostModal({ kids }: { kids: Kid[] }) {
                 </div>
               )}
               <input
+                ref={fileInputRef}
                 id={fileInputId}
                 type="file"
                 name="files"
                 multiple
-                accept="image/jpeg,image/png,image/webp,image/gif"
+                accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif,image/avif,image/bmp"
                 onChange={handleFiles}
                 className="sr-only"
               />
