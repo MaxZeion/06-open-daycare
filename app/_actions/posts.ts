@@ -73,7 +73,10 @@ export async function createPostAction(
 
   for (const file of files) {
     if (!file.type.startsWith("image/")) {
-      return { ok: false, error: "Solo imágenes." };
+      return {
+        ok: false,
+        error: `La foto "${file.name}" no es una imagen.`,
+      };
     }
   }
 
