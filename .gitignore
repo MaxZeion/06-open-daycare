@@ -48,3 +48,8 @@ next-env.d.ts
 
 # openspec (runtime state)
 /.agents/skills/.openspec-target
+
+# uploads de staff (la carpeta seed/ y el .gitkeep se mantienen en el repo)
+/public/uploads/posts/*
+!/public/uploads/posts/.gitkeep
+!/public/uploads/posts/seed/
