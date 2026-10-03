@@ -26,6 +26,7 @@ export type Database = {
           photo_consent: boolean
           room_id: string | null
           status: Database["public"]["Enums"]["child_status"]
+          updated_at: string
         }
         Insert: {
           allergy_tags?: string[]
@@ -38,6 +39,7 @@ export type Database = {
           photo_consent?: boolean
           room_id?: string | null
           status?: Database["public"]["Enums"]["child_status"]
+          updated_at?: string
         }
         Update: {
           allergy_tags?: string[]
@@ -50,6 +52,7 @@ export type Database = {
           photo_consent?: boolean
           room_id?: string | null
           status?: Database["public"]["Enums"]["child_status"]
+          updated_at?: string
         }
         Relationships: [
           {
@@ -92,6 +95,7 @@ export type Database = {
           invited_by: string
           relationship: Database["public"]["Enums"]["relationship_type"]
           status: Database["public"]["Enums"]["invitation_status"]
+          updated_at: string
         }
         Insert: {
           accepted_at?: string | null
@@ -105,6 +109,7 @@ export type Database = {
           invited_by: string
           relationship: Database["public"]["Enums"]["relationship_type"]
           status?: Database["public"]["Enums"]["invitation_status"]
+          updated_at?: string
         }
         Update: {
           accepted_at?: string | null
@@ -118,6 +123,7 @@ export type Database = {
           invited_by?: string
           relationship?: Database["public"]["Enums"]["relationship_type"]
           status?: Database["public"]["Enums"]["invitation_status"]
+          updated_at?: string
         }
         Relationships: [
           {
@@ -143,6 +149,7 @@ export type Database = {
           id: string
           parent_id: string
           relationship: Database["public"]["Enums"]["relationship_type"]
+          updated_at: string
         }
         Insert: {
           child_id: string
@@ -150,6 +157,7 @@ export type Database = {
           id?: string
           parent_id: string
           relationship: Database["public"]["Enums"]["relationship_type"]
+          updated_at?: string
         }
         Update: {
           child_id?: string
@@ -157,6 +165,7 @@ export type Database = {
           id?: string
           parent_id?: string
           relationship?: Database["public"]["Enums"]["relationship_type"]
+          updated_at?: string
         }
         Relationships: [
           {
@@ -215,6 +224,7 @@ export type Database = {
           notify_on_post: boolean
           role: Database["public"]["Enums"]["user_role"]
           status: Database["public"]["Enums"]["user_status"]
+          updated_at: string
         }
         Insert: {
           avatar_url?: string | null
@@ -226,6 +236,7 @@ export type Database = {
           notify_on_post?: boolean
           role: Database["public"]["Enums"]["user_role"]
           status?: Database["public"]["Enums"]["user_status"]
+          updated_at?: string
         }
         Update: {
           avatar_url?: string | null
@@ -237,6 +248,7 @@ export type Database = {
           notify_on_post?: boolean
           role?: Database["public"]["Enums"]["user_role"]
           status?: Database["public"]["Enums"]["user_status"]
+          updated_at?: string
         }
         Relationships: [
           {
@@ -253,6 +265,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      daycare_of_child: { Args: { p_child_id: string }; Returns: string }
       email_exists: { Args: { p_email: string }; Returns: boolean }
       expire_invitation: {
         Args: { p_invitation_id: string }
@@ -261,6 +274,7 @@ export type Database = {
       validate_invitation: {
         Args: { p_code: string }
         Returns: {
+          child_full_name: string
           child_id: string
           daycare_id: string
           expires_at: string
@@ -268,6 +282,7 @@ export type Database = {
           parent_email: string
           parent_full_name: string
           relationship: Database["public"]["Enums"]["relationship_type"]
+          room_name: string
           status: Database["public"]["Enums"]["invitation_status"]
         }[]
       }
@@ -340,7 +355,7 @@ export type TablesInsert<
         Insert: infer I
       }
       ? I
-      : never
+        : never
     : never
 
 export type TablesUpdate<
@@ -365,7 +380,7 @@ export type TablesUpdate<
         Update: infer U
       }
       ? U
-      : never
+        : never
     : never
 
 export type Enums<

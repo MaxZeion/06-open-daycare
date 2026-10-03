@@ -42,6 +42,12 @@ OpenDayCare — app de guardería. App Router en `app/` (aún es el scaffold de 
 - `supabase` (`.agents/skills/supabase/`) — carga cualquier tarea que involucre Supabase: Database, Auth, Edge Functions, Realtime, Storage, RLS, CLI, integración con Next.js (`@supabase/ssr`), troubleshooting y logs.
 - `supabase-postgres-best-practices` (`.agents/skills/supabase-postgres-best-practices/`) — carga ANTES de escribir/cambiar algo que viva en la DB: tablas, migraciones, RLS, índices, funciones, queries lentas.
 
+## Agentes
+
+- **`spec-verify`** (`.opencode/agents/spec-verify.md`) — verifica `## Acceptance criteria` de un spec (CLI, código, Context7, Playwright + visión). Invocar con `/spec-verify [NN | slug | path]`.
+- **`react-best-practices`** (`.opencode/agents/react-best-practices.md`) — auditor readonly de Next.js/React 19 en `app/`. Invocar con `/react-audit <path | "all">`.
+- **`db-security-auditor`** (`.opencode/agents/db-security-auditor.md`) — auditor readonly de la DB de Supabase: previene fugas entre niños/padres/guarderías por RLS mal configurado y aplica las reglas de `.agents/skills/supabase-postgres-best-practices/`. Invocar con `/db-security-audit <path | "all" | tema | spec>`. **Usar antes de mergear cualquier spec que cree/modifique tablas, policies o funciones en `supabase/migrations/`**, o como gate de seguridad periódico (ej. `all`). El agente nunca aplica cambios — propone snippets y deja la decisión al usuario.
+
 ## Stack de Supabase en la app (Next.js)
 
 Toda interacción con Supabase desde el código de la app va por estos paquetes. No importar `supabase-js` directo en páginas/componentes — solo a través de los helpers de `utils/supabase/`.
