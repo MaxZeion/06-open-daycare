@@ -1,6 +1,6 @@
 # SPEC 20 — Feed familiar filtrado por hijos + Resumen del día
 
-> **Status:** Draft
+> **Status:** Aprobado
 > **Depends on:** SPEC 08 (daycares/rooms seed), SPEC 09 (users + role), SPEC 10 (login + getCurrentUser + requireRole), SPEC 11 (kids from Supabase + harden parent_children/children RLS), SPEC 12 (parent invitation + activation), SPEC 16 (posts/post_children/post_photos), SPEC 19 (audience-aware FeedPageClient)
 > **Date:** 2026-10-03
 > **Objective:** Mostrar al padre en `/familiar` el feed real filtrado por sus hijos vinculados (incluyendo anuncios de "toda la sala") y conectar el sidebar "Resumen del día" con una nueva tabla `daily_summaries`, dejando RLS endurecido para `role='parent'`.
