@@ -10,6 +10,10 @@ const ALLOWED_MIME = new Set([
   "image/png",
   "image/webp",
   "image/gif",
+  "image/heic",
+  "image/heif",
+  "image/avif",
+  "image/bmp",
 ]);
 
 const EXT_BY_MIME: Record<string, string> = {
@@ -17,6 +21,10 @@ const EXT_BY_MIME: Record<string, string> = {
   "image/png": "png",
   "image/webp": "webp",
   "image/gif": "gif",
+  "image/heic": "heic",
+  "image/heif": "heif",
+  "image/avif": "avif",
+  "image/bmp": "bmp",
 };
 
 export interface SavePhotoResult {
@@ -32,7 +40,9 @@ export class UploadValidationError extends Error {
 
 export async function savePhotoToBucket(file: File): Promise<SavePhotoResult> {
   if (!ALLOWED_MIME.has(file.type)) {
-    throw new UploadValidationError("Solo imágenes (JPEG, PNG, WebP o GIF).");
+    throw new UploadValidationError(
+      `La foto "${file.name}" no es un formato soportado (JPEG, PNG, WebP, GIF, HEIC, AVIF, BMP).`,
+    );
   }
   if (file.size <= 0) {
     throw new UploadValidationError("La foto está vacía.");
