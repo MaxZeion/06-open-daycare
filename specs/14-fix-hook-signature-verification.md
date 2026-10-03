@@ -1,6 +1,6 @@
 # SPEC 14 — Verificación HMAC (Standard Webhooks) en Auth Hook `before_user_created`
 
-> **Status:** Aprovado
+> **Status:** Implementado
 > **Depends on:** SPEC 13 (Auth Hook `before_user_created` + migration 13/14/15)
 > **Date:** 2026-10-02
 > **Objective:** Endurecer la Edge Function `before_user_created` para verificar la firma HMAC-SHA256 del payload (Standard Webhooks Spec de Supabase) usando la librería `standardwebhooks`, rechazando con 401 cualquier request que no venga del Supabase Auth server.

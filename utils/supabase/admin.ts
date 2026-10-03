@@ -4,10 +4,9 @@
 // server actions, jobs). NUNCA importar desde componentes cliente ni exponer
 // la key al bundle.
 //
-// Usa `SUPABASE_SERVICE_ROLE_KEY` (variable de entorno server-only, sin
-// prefijo `NEXT_PUBLIC_`). Esta key bypasea RLS y tiene permisos totales
-// sobre el proyecto. Mantener fuera del repo (.env.local está en
-// .gitignore).
+// Usa `SUPABASE_SECRET_KEY` (variable de entorno server-only, sin prefijo
+// `NEXT_PUBLIC_`). Esta key bypassea RLS y tiene permisos totales sobre el
+// proyecto. Mantener fuera del repo (.env.local está en .gitignore).
 //
 // El helper se usa solo desde código que verifica caller + autorización
 // server-side (e.g. `/api/admin/create-staff`). Por sí mismo no valida nada;
@@ -19,7 +18,7 @@ import type { Database } from "@/types/supabase";
 export const createAdminClient = () =>
   createClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    process.env.SUPABASE_SECRET_KEY!,
     {
       auth: {
         autoRefreshToken: false,

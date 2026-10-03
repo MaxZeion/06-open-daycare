@@ -2,6 +2,7 @@
 
 import { cookies } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
+import { createAdminClient } from "@/utils/supabase/admin";
 import type { Relationship } from "@/components/kids/mapKid";
 
 export interface ActivateState {
@@ -128,7 +129,15 @@ export async function activate(
     return { error: "No se pudo completar la activación. Inténtalo de nuevo." };
   }
 
-  const { error: linkError } = await supabase.from("parent_children").insert({
+  // SPEC 13: usamos `service_role` (admin client) para estas dos escrituras
+  // porque las policies RLS actuales en `parent_children` e `invitations`
+  // solo permiten INSERT/UPDATE a `staff`/`admin`. El padre recién creado
+  // tiene `role='parent'` y no podría escribir. La invitación ya fue
+  // validada arriba (status='pending', email match, no expirada, child_id
+  // viene de la invitación), así que es seguro escribir con service_role.
+  const adminClient = createAdminClient();
+
+  const { error: linkError } = await adminClient.from("parent_children").insert({
     parent_id: parentUser.id,
     child_id: invite.child_id,
     relationship: invite.relationship,
@@ -138,7 +147,7 @@ export async function activate(
     return { error: "No se pudo completar la activación. Inténtalo de nuevo." };
   }
 
-  const { error: acceptError } = await supabase
+  const { error: acceptError } = await adminClient
     .from("invitations")
     .update({ status: "accepted", accepted_at: new Date().toISOString() })
     .eq("id", invite.invitation_id);

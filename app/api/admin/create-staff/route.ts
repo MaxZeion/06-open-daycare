@@ -17,7 +17,7 @@
 //     pasar `daycare_id` + `role` directamente en `user_metadata`. El
 //     trigger `handle_new_auth_user` (migration 13) los propaga a
 //     `public.users` con `status='active'`.
-//   - `SUPABASE_SERVICE_ROLE_KEY` debe estar en `.env.local`.
+//   - `SUPABASE_SECRET_KEY` debe estar en `.env.local`.
 
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
