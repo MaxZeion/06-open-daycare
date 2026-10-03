@@ -5,6 +5,7 @@ import {
   requireRole,
 } from "@/utils/supabase/auth";
 import { createClient } from "@/utils/supabase/server";
+import { listFeedPosts } from "@/utils/supabase/posts";
 import { mapChild, type ChildrenRow, type RoomOption } from "@/app/(staff)/_components/kids/mapKid";
 import { FeedPageClient } from "./_components/feed/FeedPageClient";
 
@@ -14,13 +15,14 @@ export default async function Page() {
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
 
-  const [{ data: roomsData }, { data: childrenData }] = await Promise.all([
+  const [{ data: roomsData }, { data: childrenData }, posts] = await Promise.all([
     supabase.from("rooms").select("id, name").order("name"),
     supabase
       .from("children")
       .select("*")
       .eq("status", "active")
       .order("created_at", { ascending: false }),
+    listFeedPosts(),
   ]);
 
   const rooms: RoomOption[] =
@@ -35,7 +37,7 @@ export default async function Page() {
 
   return (
     <StaffShell active="feed" kids={kids}>
-      <FeedPageClient />
+      <FeedPageClient posts={posts} />
     </StaffShell>
   );
 }

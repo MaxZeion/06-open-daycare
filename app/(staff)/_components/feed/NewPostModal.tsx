@@ -1,22 +1,22 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import {
+  useActionState,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
 import { ImagePlusIcon, PhotoIcon } from "@/components/shared/icons";
 import type { Kid } from "../kids/mockKids";
 import type { PostKind } from "./mockPosts";
-
-type NewPostModalProps = {
-  open: boolean;
-  kids: Kid[];
-  onClose: () => void;
-  publish: (input: {
-    kind: PostKind;
-    body: string;
-    kids: Kid[];
-    allRoom: boolean;
-  }) => void;
-};
+import {
+  createPostAction,
+  type CreatePostResult,
+} from "@/app/_actions/posts";
+import { useFeed } from "./FeedContext";
 
 const KINDS: { value: PostKind; label: string }[] = [
   { value: "comida", label: "Comida" },
@@ -27,6 +27,8 @@ const KINDS: { value: PostKind; label: string }[] = [
   { value: "foto", label: "Foto" },
   { value: "anuncio", label: "Anuncio" },
 ];
+
+const MAX_PHOTOS = 5;
 
 function kindChipClasses(value: PostKind, active: boolean): string {
   const palette: Record<PostKind, string> = {
@@ -45,54 +47,81 @@ function kindChipClasses(value: PostKind, active: boolean): string {
   ].join(" ");
 }
 
-export function NewPostModal({ open, kids, onClose, publish }: NewPostModalProps) {
+const INITIAL_STATE: CreatePostResult = { ok: false, error: "" };
+
+export function NewPostModal({ kids }: { kids: Kid[] }) {
+  const { modalOpen, closeModal } = useFeed();
+
+  const [state, formAction, isPending] = useActionState<CreatePostResult, FormData>(
+    createPostAction,
+    INITIAL_STATE,
+  );
+
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [allRoom, setAllRoom] = useState(false);
   const [kind, setKind] = useState<PostKind>("actividad");
   const [body, setBody] = useState("");
+  const [files, setFiles] = useState<File[]>([]);
   const [attempted, setAttempted] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
+  const fileInputId = useId();
+  const descriptionId = useId();
+  const descriptionErrorId = `${descriptionId}-error`;
+  const recipientErrorId = useId();
+
+  const previews = useMemo(
+    () => files.map((file) => ({ name: file.name, url: URL.createObjectURL(file) })),
+    [files],
+  );
+
   useEffect(() => {
-    if (!open) {
-      return;
-    }
+    return () => {
+      for (const preview of previews) {
+        URL.revokeObjectURL(preview.url);
+      }
+    };
+  }, [previews]);
+
+  useEffect(() => {
+    if (!modalOpen) return;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = previousOverflow;
     };
-  }, [open]);
+  }, [modalOpen]);
 
   useEffect(() => {
-    if (!open) {
-      return;
-    }
+    if (!modalOpen) return;
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
-        onClose();
+        closeModal();
       }
     }
     document.addEventListener("keydown", handleKeyDown);
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [open, onClose]);
+  }, [modalOpen, closeModal]);
 
-  useEffect(() => {
-    if (open) {
-      cardRef.current?.focus();
-    }
-  }, [open]);
-
-  if (!open) {
-    return null;
+  function resetFields() {
+    setSelectedIds([]);
+    setAllRoom(false);
+    setKind("actividad");
+    setBody("");
+    setFiles([]);
+    setAttempted(false);
   }
 
-  const hasRecipient = allRoom || selectedIds.length > 0;
-  const bodyInvalid = body.trim().length === 0;
-  const showRecipientError = attempted && !hasRecipient;
-  const showBodyError = attempted && bodyInvalid;
+  useEffect(() => {
+    if (state.ok) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      resetFields();
+      closeModal();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
 
   function toggleKid(id: string) {
     setSelectedIds((prev) =>
@@ -105,26 +134,36 @@ export function NewPostModal({ open, kids, onClose, publish }: NewPostModalProps
     setSelectedIds([]);
   }
 
-  function resetFields() {
-    setSelectedIds([]);
-    setAllRoom(false);
-    setKind("actividad");
-    setBody("");
-    setAttempted(false);
+  function handleFiles(event: React.ChangeEvent<HTMLInputElement>) {
+    const incoming = Array.from(event.target.files ?? []);
+    if (incoming.length === 0) return;
+    setFiles((prev) => {
+      const merged = [...prev, ...incoming];
+      return merged.slice(0, MAX_PHOTOS);
+    });
+    event.target.value = "";
   }
 
-  function handlePublish() {
-    if (!hasRecipient || bodyInvalid) {
+  function removeFile(index: number) {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  if (!modalOpen) return null;
+
+  const hasRecipient = allRoom || selectedIds.length > 0;
+  const bodyInvalid = body.trim().length === 0;
+  const recipientInvalid = !hasRecipient;
+  const descriptionInvalid = bodyInvalid;
+
+  const clientError = !state.ok && state.error ? state.error : "";
+  const showRecipientError = attempted && recipientInvalid;
+  const showDescriptionError = attempted && descriptionInvalid;
+
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    if (recipientInvalid || descriptionInvalid) {
+      event.preventDefault();
       setAttempted(true);
-      return;
     }
-    publish({
-      kind,
-      body,
-      kids: kids.filter((kid) => selectedIds.includes(kid.id)),
-      allRoom,
-    });
-    resetFields();
   }
 
   const visibleKids = allRoom ? [] : kids;
@@ -132,7 +171,7 @@ export function NewPostModal({ open, kids, onClose, publish }: NewPostModalProps
   return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      onClick={onClose}
+      onClick={closeModal}
     >
       <div
         ref={cardRef}
@@ -146,7 +185,7 @@ export function NewPostModal({ open, kids, onClose, publish }: NewPostModalProps
         <header className="flex flex-none items-center justify-between border-b border-border px-[26px] py-5">
           <button
             type="button"
-            onClick={onClose}
+            onClick={closeModal}
             className="text-[15px] font-bold text-muted-strong"
           >
             Cancelar
@@ -155,15 +194,32 @@ export function NewPostModal({ open, kids, onClose, publish }: NewPostModalProps
             Nueva publicación
           </span>
           <button
-            type="button"
-            onClick={handlePublish}
-            className="text-[15px] font-extrabold text-accent"
+            type="submit"
+            form="new-post-form"
+            disabled={isPending}
+            aria-busy={isPending}
+            className="text-[15px] font-extrabold text-accent disabled:opacity-60"
           >
-            Publicar
+            {isPending ? "Publicando…" : "Publicar"}
           </button>
         </header>
 
-        <div className="overflow-y-auto px-[26px] py-6">
+        <form
+          id="new-post-form"
+          action={formAction}
+          onSubmit={handleSubmit}
+          noValidate
+          className="overflow-y-auto px-[26px] py-6"
+        >
+          {clientError ? (
+            <p
+              role="alert"
+              className="mb-4 rounded-[12px] bg-alert-box-bg px-4 py-3 text-[13.5px] font-bold text-alert-title"
+            >
+              {clientError}
+            </p>
+          ) : null}
+
           <div className="mb-[22px]">
             <div className="mb-2.5 text-xs font-extrabold tracking-[0.7px] text-muted-strong">
               PARA
@@ -214,8 +270,19 @@ export function NewPostModal({ open, kids, onClose, publish }: NewPostModalProps
                 </p>
               ) : null}
             </div>
+            <input
+              type="hidden"
+              name="allRoom"
+              value={allRoom ? "true" : "false"}
+            />
+            {selectedIds.map((id) => (
+              <input key={id} type="hidden" name="childIds" value={id} />
+            ))}
             {showRecipientError ? (
-              <p className="mt-2 text-xs font-bold text-field-error">
+              <p
+                id={recipientErrorId}
+                className="mt-2 text-xs font-bold text-field-error"
+              >
                 Selecciona al menos un niño o pulsa Toda la sala.
               </p>
             ) : null}
@@ -238,43 +305,95 @@ export function NewPostModal({ open, kids, onClose, publish }: NewPostModalProps
                 </button>
               ))}
             </div>
+            <input type="hidden" name="kind" value={kind} />
           </div>
 
           <div className="mb-[22px]">
-            <div className="mb-2.5 text-xs font-extrabold tracking-[0.7px] text-muted-strong">
+            <label
+              htmlFor={descriptionId}
+              className="mb-2.5 block text-xs font-extrabold tracking-[0.7px] text-muted-strong"
+            >
               DESCRIPCIÓN
-            </div>
+            </label>
             <textarea
+              id={descriptionId}
+              name="body"
               value={body}
               onChange={(event) => setBody(event.target.value)}
               placeholder="Cuenta cómo le fue hoy…"
-              aria-invalid={showBodyError}
+              aria-invalid={showDescriptionError}
+              aria-describedby={
+                showDescriptionError ? descriptionErrorId : undefined
+              }
               className={`w-full min-h-[120px] resize-y rounded-[14px] border-[1.5px] bg-field-bg px-4 py-3.5 text-[15px] leading-[1.5] text-ink outline-none placeholder:text-field-placeholder ${
-                showBodyError ? "border-field-error" : "border-input-border"
+                showDescriptionError ? "border-field-error" : "border-input-border"
               }`}
             />
-            {showBodyError ? (
-              <p className="mt-2 text-xs font-bold text-field-error">
+            {showDescriptionError ? (
+              <p
+                id={descriptionErrorId}
+                className="mt-2 text-xs font-bold text-field-error"
+              >
                 Escribe una descripción.
               </p>
             ) : null}
           </div>
 
           <div className="mb-2">
-            <div className="mb-2.5 text-xs font-extrabold tracking-[0.7px] text-muted-strong">
-              FOTOS
+            <div className="mb-2.5 flex items-center justify-between text-xs font-extrabold tracking-[0.7px] text-muted-strong">
+              <span>FOTOS</span>
+              <span className="text-[12px] font-bold text-muted">
+                {files.length}/{MAX_PHOTOS}
+              </span>
             </div>
-            <div className="flex gap-3">
-              <div className="flex h-24 w-24 items-center justify-center rounded-[14px] border border-photo-tile-border bg-photo-tile-bg text-chevron-ink">
-                <PhotoIcon className="h-[26px] w-[26px]" />
-              </div>
-              <div className="flex h-24 w-24 flex-col items-center justify-center gap-1.5 rounded-[14px] border-[1.5px] border-dashed border-photo-tile-add-border bg-photo-tile-bg text-photo-tile-add-fg">
-                <ImagePlusIcon className="h-[22px] w-[22px] text-accent-deep" />
-                <span className="text-xs">Agregar</span>
-              </div>
+            <div className="flex flex-wrap gap-3">
+              {previews.map((preview, index) => (
+                <div
+                  key={preview.url}
+                  className="relative h-24 w-24 overflow-hidden rounded-[14px] border border-photo-tile-border bg-photo-tile-bg"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={preview.url}
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeFile(index)}
+                    aria-label={`Quitar ${preview.name}`}
+                    className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-[rgba(63,54,46,0.85)] text-xs font-extrabold text-white"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+              {files.length < MAX_PHOTOS ? (
+                <label
+                  htmlFor={fileInputId}
+                  className="flex h-24 w-24 cursor-pointer flex-col items-center justify-center gap-1.5 rounded-[14px] border-[1.5px] border-dashed border-photo-tile-add-border bg-photo-tile-bg text-photo-tile-add-fg"
+                >
+                  <ImagePlusIcon className="h-[22px] w-[22px] text-accent-deep" />
+                  <span className="text-xs">Agregar</span>
+                </label>
+              ) : (
+                <div className="flex h-24 w-24 flex-col items-center justify-center gap-1.5 rounded-[14px] border-[1.5px] border-dashed border-photo-tile-add-border bg-photo-tile-bg text-photo-tile-add-fg">
+                  <PhotoIcon className="h-[22px] w-[22px]" />
+                  <span className="text-xs">Máximo</span>
+                </div>
+              )}
+              <input
+                id={fileInputId}
+                type="file"
+                name="files"
+                multiple
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                onChange={handleFiles}
+                className="sr-only"
+              />
             </div>
           </div>
-        </div>
+        </form>
       </div>
     </div>,
     document.body,

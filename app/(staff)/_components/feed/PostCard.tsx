@@ -4,11 +4,11 @@ import {
   MessageIcon,
   PhotoIcon,
 } from "@/components/shared/icons";
+import type { FeedPost } from "@/utils/supabase/posts";
 import { KIND_META } from "./mockPosts";
-import type { Post } from "./mockPosts";
 
 interface PostCardProps {
-  post: Post;
+  post: FeedPost;
 }
 
 export function PostCard({ post }: PostCardProps) {
@@ -16,6 +16,7 @@ export function PostCard({ post }: PostCardProps) {
   const authorName = post.author.name;
   const avatarLabel =
     post.author.initials === "" ? "Anuncio general" : `Avatar de ${authorName}`;
+  const firstPhoto = post.photos[0];
   return (
     <article className="rounded-[20px] border border-border bg-surface px-[22px] py-5 shadow-card">
       <header className="mb-3.5 flex items-center gap-3">
@@ -55,12 +56,22 @@ export function PostCard({ post }: PostCardProps) {
       </p>
       <p className="text-[15.5px] leading-[1.55] text-ink-soft">{post.body}</p>
 
-      {post.photo ? (
+      {firstPhoto ? (
+        <div className="mt-3.5 overflow-hidden rounded-2xl border border-border bg-photo-placeholder-bg">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={firstPhoto.url}
+            alt=""
+            className="block max-h-[420px] w-full object-cover"
+            loading="lazy"
+          />
+        </div>
+      ) : (
         <div className="mt-3.5 flex h-[200px] flex-col items-center justify-center gap-2 rounded-2xl border-[1.5px] border-dashed border-photo-placeholder-border bg-photo-placeholder-bg text-photo-placeholder-fg">
           <PhotoIcon className="h-[30px] w-[30px]" />
-          <span className="text-[13.5px]">{post.photo}</span>
+          <span className="text-[13.5px]">Sin fotos</span>
         </div>
-      ) : null}
+      )}
 
       <footer className="mt-4 flex items-center gap-[18px] border-t border-border-soft pt-3.5">
         <span className="flex items-center gap-[7px] text-sm font-bold text-accent-hot">
