@@ -1,41 +1,61 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { PostCard } from "./PostCard";
-import { useFeed } from "./FeedContext";
-import { CameraIcon } from "@/components/shared/icons";
 import type { FeedPost } from "@/utils/supabase/posts";
 
-export function FeedPageClient({ posts = [] }: { posts?: FeedPost[] }) {
-  const { openModal } = useFeed();
+export type FeedHeader =
+  | { kind: "staff"; teacherName: string; kidsCount: number; date: string }
+  | { kind: "family"; parentName: string };
+
+export function FeedPageClient({
+  posts = [],
+  header,
+  children,
+}: {
+  posts?: FeedPost[];
+  header?: FeedHeader;
+  children?: ReactNode;
+}) {
+  const effectiveHeader: FeedHeader =
+    header ?? {
+      kind: "staff",
+      teacherName: "Caro",
+      kidsCount: 12,
+      date: "martes 17 jun",
+    };
+
   return (
     <div className="mx-auto w-full max-w-[760px] px-5 pb-24 pt-8 md:px-10 md:pb-20 md:pt-[34px]">
       <header className="mb-6">
-        <p className="mb-1 text-[12.5px] font-extrabold tracking-[0.8px] text-accent">
-          GUARDERÍA · SALA SOLES
-        </p>
-        <h1 className="font-display text-[26px] font-semibold text-ink md:text-[30px]">
-          Buenas, Caro
-        </h1>
-        <p className="mt-[5px] text-[14.5px] text-muted-strong">
-          12 niños · martes 17 jun
-        </p>
+        {effectiveHeader.kind === "staff" ? (
+          <>
+            <p className="mb-1 text-[12.5px] font-extrabold tracking-[0.8px] text-accent">
+              GUARDERÍA · SALA SOLES
+            </p>
+            <h1 className="font-display text-[26px] font-semibold text-ink md:text-[30px]">
+              Buenas, {effectiveHeader.teacherName}
+            </h1>
+            <p className="mt-[5px] text-[14.5px] text-muted-strong">
+              {effectiveHeader.kidsCount} niños · {effectiveHeader.date}
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="mb-1 text-[12.5px] font-extrabold tracking-[0.8px] text-accent">
+              TU FAMILIA
+            </p>
+            <h1 className="font-display text-[26px] font-semibold text-ink md:text-[30px]">
+              Hola, {effectiveHeader.parentName}
+            </h1>
+            <p className="mt-[5px] text-[14.5px] text-muted-strong">
+              Así va el día de hoy
+            </p>
+          </>
+        )}
       </header>
 
-      <button
-        type="button"
-        onClick={openModal}
-        className="mb-6 flex w-full items-center gap-3.5 rounded-[18px] border border-border bg-surface px-[18px] py-3.5 shadow-composer"
-      >
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand font-display text-base font-semibold text-white">
-          C
-        </span>
-        <span className="min-w-0 flex-1 text-[15px] text-muted">
-          Comparte un momento…
-        </span>
-        <span className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent-hot">
-          <CameraIcon className="h-[19px] w-[19px]" />
-        </span>
-      </button>
+      {children}
 
       <div className="mb-3.5 flex items-center gap-3.5">
         <span className="text-[12.5px] font-extrabold tracking-[0.8px] text-divider-ink">

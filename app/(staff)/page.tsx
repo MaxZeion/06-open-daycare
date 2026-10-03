@@ -8,6 +8,7 @@ import { createClient } from "@/utils/supabase/server";
 import { listFeedPosts } from "@/utils/supabase/posts";
 import { mapChild, type ChildrenRow, type RoomOption } from "@/app/(staff)/_components/kids/mapKid";
 import { FeedPageClient } from "./_components/feed/FeedPageClient";
+import { StaffFeedComposer } from "./_components/feed/StaffFeedComposer";
 
 export default async function Page() {
   await requireRole("staff", DEFAULT_FAMILY_NEXT, "/");
@@ -37,7 +38,17 @@ export default async function Page() {
 
   return (
     <StaffShell active="feed" kids={kids}>
-      <FeedPageClient posts={posts} />
+      <FeedPageClient
+        posts={posts}
+        header={{
+          kind: "staff",
+          teacherName: "Caro",
+          kidsCount: kids.length,
+          date: "martes 17 jun",
+        }}
+      >
+        <StaffFeedComposer />
+      </FeedPageClient>
     </StaffShell>
   );
 }
