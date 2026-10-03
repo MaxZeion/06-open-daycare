@@ -169,13 +169,19 @@ Deno.serve(async (req: Request) => {
 - **Sí:** si `BEFORE_USER_CREATED_HOOK_SECRET` falta, throw al iniciar. **No:** secret vacío que acepta todo (worst-case). Fail closed.
 - **Sí:** mantener el formato JSON actual del payload que Supabase envía (`{ user: {...}, metadata: {...} }`) — el hook `before_user_created` lo usa, no `{}` como el resto de hooks.
 - **No:** actualizar `supabase/config.toml` (no existe en este proyecto cloud-managed). La configuración se hace en el Dashboard.
+- **Auth Hook activo:** el Auth Hook del Dashboard de Supabase apunta a `before_user_created_v2` (v4, con HMAC). La función original `before_user_created` (v3, sin HMAC) sigue desplegada pero el Dashboard NO la invoca (verificado vía `supabase_query_logs` sobre `function_edge_logs`: Supabase Auth solo llama a `before_user_created_v2`, 0 calls a la original). El cleanup de la v3 queda fuera de scope (no accionable desde MCP; requiere Management API o Dashboard manual).
+
+**Addendum (post-verificación, 2026-10-03):**
+- `deno.json` no commiteado: la lib `standardwebhooks` se importa directo desde `https://esm.sh/standardwebhooks@1.0.0` (línea 35 de `index.ts`). El MCP de Supabase no preserva `deno.json` entre deploys, y la URL es pinneable.
+- Fail-closed vía 500 per-request (no throw at startup). Si `BEFORE_USER_CREATED_HOOK_SECRET` no está configurado, cada request retorna `500 {"error":{"message":"BEFORE_USER_CREATED_HOOK_SECRET no está configurada..."}}`. Razón: el `throw` original causaba `WORKER_ERROR` 500 indistinguible de un crash real (commit `a66f7a2`). El spec original decía "throw at startup"; el comportamiento cambió a 500 per-request para distinguir el error de configuración de un crash real.
+- Función desplegada como `before_user_created_v2` (no update de la original): el autor deployó la versión HMAC como función nueva para evitar perder `deno.json` de la v3. El Auth Hook del Dashboard apunta a `_v2`.
 
 ## Risks
 
 | Risk | Mitigation |
 | --- | --- |
 | Si el secret rota y el cliente no actualiza el env var, la verificación falla y todo signup público se rechaza (lockout). | El multi-secret permite coexistir secret viejo + nuevo durante la rotación. AGENTS.md puede documentar el procedimiento. |
-| El `if (secrets.length === 0) throw` bloquea todos los signups si se olvida configurar el secret. | Fail closed es preferible a fail open. El operador nota el error inmediatamente en logs de la edge function. |
+| Si `BEFORE_USER_CREATED_HOOK_SECRET` no está configurado en el Dashboard, la edge function retorna 500 per-request y bloquea todos los signups. | Fail closed es preferible a fail open. El operador nota el error inmediatamente en logs de la edge function (status 500 + mensaje claro `"BEFORE_USER_CREATED_HOOK_SECRET no está configurada..."`). |
 | La lib `standardwebhooks@1.0.0` puede tener vulnerabilidades desconocidas. | Pin exacto de versión. Si en el futuro sale v2 con breaking changes, spec aparte para migrar. |
 | El payload crudo (`req.text()`) puede ser grande si Supabase añade más campos. Standard Webhooks tiene límite de 20KB. | Verificamos que el body no exceda 20KB antes de procesarlo (defensive). |
 
