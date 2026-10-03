@@ -1,6 +1,6 @@
 import { Resend } from "resend";
 
-const RESEND_FROM = "onboarding@resend.dev";
+const RESEND_FROM = process.env.RESEND_FROM ?? "onboarding@resend.dev";
 const EMAIL_SUBJECT = "Tu invitación a OpenDayCare";
 const SEND_ERROR = "No se pudo enviar el correo. Intenta de nuevo.";
 
