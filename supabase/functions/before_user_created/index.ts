@@ -12,8 +12,11 @@
 // Configuración del secret:
 //   - El Dashboard genera `v1,whsec_<base64>` al activar el hook
 //     (Authentication → Hooks → Before User Created → HTTP Endpoint).
-//   - Setear en `.env.local` y/o `supabase/functions/.env`:
+//   - Setear como Edge Function secret en el Dashboard de Supabase
+//     (Edge Functions → before_user_created_v2 → Secrets):
 //       BEFORE_USER_CREATED_HOOK_SECRET="v1,whsec_<base64>"
+//   - NO va en `.env` ni `.env.local` del repo (secret vive solo en el
+//     Dashboard, igual que `SUPABASE_SECRET_KEY`). Ver `AGENTS.md`.
 //   - Para rotación, pipe-separate dos o más secrets:
 //       BEFORE_USER_CREATED_HOOK_SECRET="v1,whsec_<nuevo>|"v1,whsec_<viejo>"
 //
