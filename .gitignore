@@ -45,3 +45,6 @@ next-env.d.ts
 # mcp-playwright
 /.mcp-playwright/
 .playwright-mcp/
+
+# openspec (runtime state)
+/.agents/skills/.openspec-target
