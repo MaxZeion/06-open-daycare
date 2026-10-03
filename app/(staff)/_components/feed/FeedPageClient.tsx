@@ -3,9 +3,10 @@
 import { PostCard } from "./PostCard";
 import { useFeed } from "./FeedContext";
 import { CameraIcon } from "@/components/shared/icons";
+import type { FeedPost } from "@/utils/supabase/posts";
 
-export function FeedPageClient() {
-  const { posts, openModal } = useFeed();
+export function FeedPageClient({ posts = [] }: { posts?: FeedPost[] }) {
+  const { openModal } = useFeed();
   return (
     <div className="mx-auto w-full max-w-[760px] px-5 pb-24 pt-8 md:px-10 md:pb-20 md:pt-[34px]">
       <header className="mb-6">
