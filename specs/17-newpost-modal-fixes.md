@@ -20,7 +20,8 @@ Tres bugs detectados en uso real de SPEC 16 mergeado:
 - Expandir `ALLOWED_MIME` y `EXT_BY_MIME` en `utils/uploads.ts` con `image/heic | image/heif | image/avif | image/bmp`. Mensaje de error en `savePhotoToBucket` que incluye `file.name` y lista los formatos soportados.
 - Mejorar el pre-check server-side en `app/_actions/posts.ts:74-78` para que el mensaje incluya el filename.
 - En `NewPostModal.tsx`: añadir `fileInputRef` + `useEffect([files])` que sincroniza `input.files` con React state vía `DataTransfer`, de modo que quitar un archivo del state también lo quite del `<input>` antes de enviar.
-- En `NewPostModal.tsx`: añadir reset completo al abrir el modal (no solo al publicar con éxito), forzando re-mount del `<form>` con `key={openCount}` para resetear también `useActionState` (sin `state.error` ni `isPending` colgados).
+- En `NewPostModal.tsx`: quitar la línea `resetFields();` del `useEffect([state])` de éxito (ya no es necesaria — el re-mount del componente se encarga).
+- En `FeedContext.tsx`: añadir `key={modalOpen ? "open" : "closed"}` a `<NewPostModal>` para forzar remount completo del componente en cada toggle de `modalOpen`, lo que resetea `files`, `body`, `selectedIds`, `kind`, `attempted` y `useActionState` (sin `state.error` ni `isPending` colgados) sin necesidad de un effect de reset local.
 - Ampliar el atributo `accept` del `<input type="file">` con los 4 MIME nuevos.
 
 **Out of scope:**
@@ -43,10 +44,10 @@ Tres bugs detectados en uso real de SPEC 16 mergeado:
    - Añadir `useEffect([files])` que reconstruye `input.files` con `new DataTransfer()` + `dt.items.add(f)` por cada file del state. Esto se ejecuta después de cada `setFiles` (add, remove, reset).
    - Asociar `ref={fileInputRef}` al `<input type="file">`.
    - Actualizar `accept` con los 4 MIME nuevos.
-   - Añadir `const [openCount, setOpenCount] = useState(0);` y `useEffect([modalOpen])` que, si `modalOpen` es `true`, llama `setOpenCount(c => c + 1)` y `resetFields()`. **Posicionarlo antes de `function resetFields()`** (React hoisting admite function declarations referenciadas desde el cuerpo del effect).
-   - Quitar la línea `resetFields();` del `useEffect([state])` de éxito (el re-mount del form vía `key` ya resetea todo).
-   - Añadir `key={openCount}` al `<form>`.
-4. `npm run lint`, `npm run typecheck`, `npm run build` exit 0. Sin nuevas dependencias.
+   - Quitar la línea `resetFields();` del `useEffect([state])` de éxito (el re-mount del componente vía `key` en `FeedProvider` ya resetea todo el estado del modal, incluido `useActionState`).
+   - No tocar `function resetFields()` ni añadir ningún effect de reset local: la responsabilidad de resetear al abrir pasa a `FeedProvider` (siguiente bullet).
+4. `app/(staff)/_components/feed/FeedContext.tsx`: añadir `key={modalOpen ? "open" : "closed"}` a `<NewPostModal>`. Cada toggle de `modalOpen` desmonta y vuelve a montar el componente, lo que resetea files / body / kids / `useActionState` sin necesidad de un effect explícito. Esquiva los rules `set-state-in-effect` e `immutability` del nuevo `eslint-plugin-react-hooks`.
+5. `npm run lint`, `npm run typecheck`, `npm run build` exit 0. Sin nuevas dependencias.
 
 ## Acceptance criteria
 
@@ -61,7 +62,7 @@ Tres bugs detectados en uso real de SPEC 16 mergeado:
 - **Sí:** sincronizar `input.files` con React state vía `DataTransfer()` (no clear del input con `value = ""`). Permite añadir más archivos después de quitar uno sin perder los demás y mantiene el state como source of truth.
 - **No:** fallback por extensión cuando `file.type` está vacío. La mayoría de navegadores modernos envían `file.type` correcto; los que no, muestran el error con el filename, que es accionable.
 - **Sí:** reset al abrir el modal en lugar de solo al publicar con éxito. BUG detectado en uso real.
-- **Sí:** `key={openCount}` en el `<form>` para forzar re-mount. `useActionState` (React 19) no expone API de reset; el key trick es la forma soportada.
+- **Sí:** `key={modalOpen ? "open" : "closed"}` en el `<NewPostModal>` desde `FeedProvider` para forzar remount completo del componente en cada toggle de `modalOpen`. Variante más idiomática que el patrón `openCount` + `useEffect` original: `useActionState` (React 19) no expone API de reset; aplicar `key` sobre el componente entero resetea TODO el estado local (files, body, kids, action state) de un solo golpe, sin necesidad de un counter ni de un effect de reset. Esquiva además los nuevos rules `set-state-in-effect` e `immutability` del `eslint-plugin-react-hooks`.
 - **No:** tocar `specs/16-posts-from-supabase.md` desde este spec. SPEC 16 está verificado y mergeado; los criterios de aceptación ya recogen el contrato (los formatos soportados se enumeran en este nuevo spec).
 - **No:** ampliar el alcance a drag and drop o subida con `<input webkitdirectory>`. Sigue siendo un solo `<input type="file" multiple>` con `accept` ampliado.
 
@@ -71,7 +72,7 @@ Tres bugs detectados en uso real de SPEC 16 mergeado:
 | --- | --- |
 | `input.files = dt.files` no soportado en navegadores antiguos | Verificable en navegador moderno (Chrome 90+, Firefox 90+, Safari 14+). Si falla en algún target, fallback: reconstruir `formData` desde React state en `createPostAction` con un wrapper. |
 | HEIC se sube pero no se renderiza en `<img>` del feed | `<img>` soporta HEIC en Safari nativo, Chrome con extensión HEIF, Firefox no. Aceptable para esta fase; conversión server-side queda como spec propio. |
-| `setOpenCount` dentro de `useEffect` (warning de React sobre setState-in-effect) | El effect solo dispara cuando `modalOpen` cambia (no en cada render). Patrón equivalente al ya usado en este mismo archivo para `setAttempted` (`handleSubmit`) — sin warning. |
+| Re-mount completo de `NewPostModal` cada vez que abre | El componente entero (incluidos los `useEffect` de `body.style.overflow`, Escape handler y revocation de blob URLs) se desmonta y vuelve a montar. Las cleanup functions de esos effects restauran correctamente `document.body.style.overflow` y revocan las URLs previas. Sin leaks observables. Si en algún momento se añaden costs grandes (refs a Portals compartidos, suscripciones externas) en `NewPostModal`, mover el contenido "pesado" a un sub-componente con su propio ciclo de vida. |
 
 ## What is **not** in this spec
 

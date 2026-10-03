@@ -39,7 +39,7 @@ export function FeedProvider({
   return (
     <FeedContext.Provider value={value}>
       {children}
-      <NewPostModal kids={kids} />
+      <NewPostModal key={modalOpen ? "open" : "closed"} kids={kids} />
     </FeedContext.Provider>
   );
 }

@@ -116,25 +116,6 @@ export function NewPostModal({ kids }: { kids: Kid[] }) {
     };
   }, [modalOpen, closeModal]);
 
-  const [openCount, setOpenCount] = useState(0);
-
-  useEffect(() => {
-    if (modalOpen) {
-      setOpenCount((c) => c + 1);
-      resetFields();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [modalOpen]);
-
-  function resetFields() {
-    setSelectedIds([]);
-    setAllRoom(false);
-    setKind("actividad");
-    setBody("");
-    setFiles([]);
-    setAttempted(false);
-  }
-
   useEffect(() => {
     if (state.ok) {
       closeModal();
@@ -224,7 +205,6 @@ export function NewPostModal({ kids }: { kids: Kid[] }) {
         </header>
 
         <form
-          key={openCount}
           id="new-post-form"
           action={formAction}
           onSubmit={handleSubmit}
