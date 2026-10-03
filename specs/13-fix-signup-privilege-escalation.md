@@ -1,6 +1,6 @@
 # SPEC 13 — Cerrar privilege escalation en signup público (Auth Hook + endpoint admin)
 
-> **Status:** Implementado
+> **Status:** Aprovado
 > **Depends on:** SPEC 09 (`users` + enums + `handle_new_auth_user`), SPEC 10 (login real + `getCurrentUser` + claims `app_metadata`), SPEC 11 (`children`), SPEC 12 (vinculación padre↔niño + invitación + `/activate`)
 > **Date:** 2026-10-02
 > **Objective:** Impedir que cualquier signup público pueda auto-asignarse `role` o `daycare_id` en `auth.users.raw_user_metadata` (vector de privilege escalation identificado por la auditoría `db-security-audit users --apply` el 2026-10-02), sustituyendo el flujo actual por un Auth Hook `before_user_created` que rechaza metadata sensible + un trigger AFTER INSERT en `auth.users` que asigna `daycare_id`/`role` desde invitaciones pendientes + un endpoint admin `/api/admin/create-staff` con `service_role` para altas manuales de staff.
