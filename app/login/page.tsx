@@ -4,7 +4,7 @@ import { createClient } from "@/utils/supabase/server";
 import { LoginForm } from "./LoginForm";
 
 interface LoginPageProps {
-  searchParams: Promise<{ next?: string }>;
+  searchParams: Promise<{ next?: string; reset?: string; error?: string }>;
 }
 
 function safeNextPath(raw: string | undefined): string {
@@ -15,7 +15,7 @@ function safeNextPath(raw: string | undefined): string {
 }
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
-  const { next: rawNext } = await searchParams;
+  const { next: rawNext, reset, error } = await searchParams;
   const next = safeNextPath(rawNext);
 
   const cookieStore = await cookies();
@@ -26,5 +26,11 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     redirect(next);
   }
 
-  return <LoginForm next={next} />;
+  return (
+    <LoginForm
+      next={next}
+      resetOk={reset === "ok"}
+      errorKey={error}
+    />
+  );
 }

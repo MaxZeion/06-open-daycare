@@ -3,33 +3,21 @@
 import { useActionState } from "react";
 import Link from "next/link";
 import { SunIcon } from "@/components/shared/icons";
-import { signIn, type SignInState } from "./actions";
+import {
+  requestPasswordReset,
+  type RequestPasswordResetState,
+} from "./actions";
 
-interface LoginFormProps {
-  next: string;
-  resetOk?: boolean;
-  errorKey?: string;
-}
+const INITIAL_STATE: RequestPasswordResetState = {};
 
-const INITIAL_STATE: SignInState = {};
+const OK_MESSAGE =
+  "Si existe una cuenta con ese email, te enviamos un enlace para restablecer tu contraseña.";
 
-function errorMessageFor(key: string | undefined): string | undefined {
-  switch (key) {
-    case "auth_callback_failed":
-      return "No pudimos validar el enlace. Pedí uno nuevo.";
-    case "recovery_link_invalid":
-      return "El enlace de recuperación no es válido o ya expiró.";
-    case "recovery_session_expired":
-      return "Tu sesión de recuperación expiró. Pedí un nuevo enlace.";
-    default:
-      return undefined;
-  }
-}
-
-export function LoginForm({ next, resetOk = false, errorKey }: LoginFormProps) {
-  const [state, formAction] = useActionState(signIn, INITIAL_STATE);
-
-  const callbackError = errorMessageFor(errorKey);
+export function ForgotPasswordForm() {
+  const [state, formAction, isPending] = useActionState<
+    RequestPasswordResetState,
+    FormData
+  >(requestPasswordReset, INITIAL_STATE);
 
   return (
     <div className="grid min-h-dvh bg-bg-auth md:grid-cols-[1.05fr_1fr]">
@@ -52,13 +40,11 @@ export function LoginForm({ next, resetOk = false, errorKey }: LoginFormProps) {
         </div>
         <div className="relative">
           <h1 className="font-display text-[42px] leading-[1.12] font-semibold">
-            El día de cada niño,
-            <br />
-            compartido con su familia.
+            Recupera el acceso a tu cuenta.
           </h1>
           <p className="mt-[18px] max-w-[430px] text-[17px] leading-[1.6] text-white/90">
-            Publicá momentos, gestioná las salas y mantené a las familias cerca,
-            desde un solo lugar.
+            Te enviaremos un enlace por email. Úsalo para definir una nueva
+            contraseña en unos minutos.
           </p>
         </div>
         <div className="relative text-sm text-white/90">
@@ -69,60 +55,41 @@ export function LoginForm({ next, resetOk = false, errorKey }: LoginFormProps) {
       <div className="flex items-center justify-center p-10">
         <div className="w-full max-w-[392px]">
           <h2 className="font-display text-[30px] font-semibold text-ink">
-            Iniciar sesión
+            ¿Olvidaste tu contraseña?
           </h2>
           <p className="mt-[6px] mb-7 text-[15px] text-muted-strong">
-            Introduce para ver el día de hoy.
+            Introduce el email de tu cuenta y te enviaremos un enlace para
+            restablecerla.
           </p>
 
-          {resetOk ? (
+          {state.ok ? (
             <div
               role="status"
               className="mb-4 rounded-[14px] border border-[#B9DEC4] bg-[#EAF6EE] p-4 text-[14.5px] text-[#3E8B62]"
             >
-              Tu contraseña fue actualizada. Inicia sesión con la nueva.
+              {OK_MESSAGE}
             </div>
           ) : null}
 
           <form action={formAction} noValidate>
-            <input type="hidden" name="next" value={next} />
-
             <div className="mb-2 text-xs font-bold tracking-[0.7px] text-muted-strong">
               EMAIL
             </div>
             <input
               type="email"
               name="email"
-              defaultValue="caro@opendaycare.com"
               required
+              autoComplete="email"
+              placeholder="tu@email.com"
               className="mb-[18px] w-full rounded-[14px] border-[1.5px] border-input-border bg-white px-4 py-[14px] text-[15px] text-ink outline-none placeholder:text-[#B6A99B]"
             />
 
-            <div className="mb-2 text-xs font-bold tracking-[0.7px] text-muted-strong">
-              CONTRASEÑA
-            </div>
-            <input
-              type="password"
-              name="password"
-              required
-              placeholder="••••••••"
-              className="mb-[10px] w-full rounded-[14px] border-[1.5px] border-input-border bg-white px-4 py-[14px] text-[15px] text-ink outline-none placeholder:text-[#B6A99B] focus:border-kid-card-hover"
-            />
-
-            <div className="mt-[10px] mb-5 text-right">
-              <Link
-                href="/forgot-password"
-                className="text-[13.5px] font-bold text-accent-deep"
-              >
-                ¿Olvidaste tu contraseña?
-              </Link>
-            </div>
-
             <button
               type="submit"
-              className="block w-full rounded-[15px] bg-[linear-gradient(180deg,var(--brand-deep-soft),var(--brand-deep))] px-4 py-[15px] text-base font-extrabold text-white shadow-cta"
+              disabled={isPending || state.ok}
+              className="block w-full rounded-[15px] bg-[linear-gradient(180deg,var(--brand-deep-soft),var(--brand-deep))] px-4 py-[15px] text-base font-extrabold text-white shadow-cta disabled:opacity-70"
             >
-              Iniciar sesión
+              {state.ok ? "Enlace enviado" : "Enviar enlace"}
             </button>
 
             {state.error ? (
@@ -133,23 +100,15 @@ export function LoginForm({ next, resetOk = false, errorKey }: LoginFormProps) {
                 {state.error}
               </p>
             ) : null}
-            {callbackError ? (
-              <p
-                role="alert"
-                className="mt-4 text-center text-[13.5px] font-medium text-accent-deep"
-              >
-                {callbackError}
-              </p>
-            ) : null}
           </form>
 
           <p className="mt-6 mb-0 text-center text-[14.5px] text-muted-strong">
-            ¿Te invitó la guardería?{" "}
+            ¿Ya la recordaste?{" "}
             <Link
-              href="/activate"
+              href="/login"
               className="font-extrabold text-accent-deep"
             >
-              Activa tu cuenta
+              Iniciar sesión
             </Link>
           </p>
         </div>

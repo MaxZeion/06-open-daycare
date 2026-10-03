@@ -71,6 +71,22 @@ Abre [http://localhost:3000](http://localhost:3000). Si no tienes sesión, te re
 
 Para parar el server: `Ctrl+C`.
 
+### 5. (Opcional pero recomendado para producción) Verificar dominio en Resend
+
+Por defecto `utils/email.ts` envía las invitaciones desde `onboarding@resend.dev`, que es el **sandbox** de Resend: solo entrega al email dueño de la cuenta Resend. Cualquier destinatario real (padres con su propio email) será rechazado con un `403 "You can only send testing emails to your own email address"`.
+
+Para enviar a cualquier destinatario tienes que verificar tu propio dominio:
+
+1. Entra en [https://resend.com/domains](https://resend.com/domains) y pulsa **Add Domain**.
+2. Añade los registros DNS que Resend te muestra (típicamente `SPF`, `DKIM` y un `TXT` de verificación) en el panel DNS de tu proveedor (Cloudflare, Route53, OVH, etc.).
+3. Cuando el dominio esté verificado, vuelve a `.env.local` y setea `RESEND_FROM` con la dirección que quieras usar:
+
+   ```env
+   RESEND_FROM=noreply@opendaycare.com
+   ```
+
+   El helper `sendInvitationEmail` (y cualquier futuro email transaccional) saldrá desde esa dirección. El sandbox queda como fallback si la variable no está definida.
+
 ---
 
 ## Scripts disponibles
