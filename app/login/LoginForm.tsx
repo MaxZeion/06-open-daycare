@@ -7,12 +7,29 @@ import { signIn, type SignInState } from "./actions";
 
 interface LoginFormProps {
   next: string;
+  resetOk?: boolean;
+  errorKey?: string;
 }
 
 const INITIAL_STATE: SignInState = {};
 
-export function LoginForm({ next }: LoginFormProps) {
+function errorMessageFor(key: string | undefined): string | undefined {
+  switch (key) {
+    case "auth_callback_failed":
+      return "No pudimos validar el enlace. Pedí uno nuevo.";
+    case "recovery_link_invalid":
+      return "El enlace de recuperación no es válido o ya expiró.";
+    case "recovery_session_expired":
+      return "Tu sesión de recuperación expiró. Pedí un nuevo enlace.";
+    default:
+      return undefined;
+  }
+}
+
+export function LoginForm({ next, resetOk = false, errorKey }: LoginFormProps) {
   const [state, formAction] = useActionState(signIn, INITIAL_STATE);
+
+  const callbackError = errorMessageFor(errorKey);
 
   return (
     <div className="grid min-h-dvh bg-bg-auth md:grid-cols-[1.05fr_1fr]">
@@ -57,6 +74,15 @@ export function LoginForm({ next }: LoginFormProps) {
           <p className="mt-[6px] mb-7 text-[15px] text-muted-strong">
             Introduce para ver el día de hoy.
           </p>
+
+          {resetOk ? (
+            <div
+              role="status"
+              className="mb-4 rounded-[14px] border border-[#B9DEC4] bg-[#EAF6EE] p-4 text-[14.5px] text-[#3E8B62]"
+            >
+              Tu contraseña fue actualizada. Inicia sesión con la nueva.
+            </div>
+          ) : null}
 
           <form action={formAction} noValidate>
             <input type="hidden" name="next" value={next} />
@@ -105,6 +131,14 @@ export function LoginForm({ next }: LoginFormProps) {
                 className="mt-4 text-center text-[13.5px] font-medium text-accent-deep"
               >
                 {state.error}
+              </p>
+            ) : null}
+            {callbackError ? (
+              <p
+                role="alert"
+                className="mt-4 text-center text-[13.5px] font-medium text-accent-deep"
+              >
+                {callbackError}
               </p>
             ) : null}
           </form>

@@ -1,11 +1,11 @@
 "use server";
 
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 
 export interface UpdatePasswordState {
   error?: string;
-  ok?: boolean;
 }
 
 const MIN_PASSWORD_LENGTH = 8;
@@ -55,5 +55,5 @@ export async function updatePassword(
     cookieStore.delete(name);
   }
 
-  return { ok: true };
+  redirect("/login?reset=ok");
 }

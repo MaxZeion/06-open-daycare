@@ -1,7 +1,6 @@
 "use client";
 
 import { useActionState } from "react";
-import Link from "next/link";
 import { SunIcon } from "@/components/shared/icons";
 import { updatePassword, type UpdatePasswordState } from "./actions";
 
@@ -55,24 +54,6 @@ export function ResetPasswordForm() {
             Mínimo 8 caracteres. No la compartas con nadie.
           </p>
 
-          {state.ok ? (
-            <div
-              role="status"
-              className="mb-4 rounded-[14px] border border-[#B9DEC4] bg-[#EAF6EE] p-4 text-[14.5px] text-[#3E8B62]"
-            >
-              <p className="font-semibold">¡Contraseña actualizada!</p>
-              <p className="mt-1 text-[13.5px]">
-                Ya podés iniciar sesión con tu nueva contraseña.
-              </p>
-              <Link
-                href="/login?reset=ok"
-                className="mt-2 inline-block font-extrabold text-accent-deep"
-              >
-                Ir a iniciar sesión
-              </Link>
-            </div>
-          ) : null}
-
           <form action={formAction} noValidate>
             <div className="mb-2 text-xs font-bold tracking-[0.7px] text-muted-strong">
               NUEVA CONTRASEÑA
@@ -100,10 +81,10 @@ export function ResetPasswordForm() {
 
             <button
               type="submit"
-              disabled={isPending || state.ok}
+              disabled={isPending}
               className="mt-5 block w-full rounded-[15px] bg-[linear-gradient(180deg,var(--brand-deep-soft),var(--brand-deep))] px-4 py-[15px] text-base font-extrabold text-white shadow-cta disabled:opacity-70"
             >
-              {state.ok ? "Contraseña guardada" : "Guardar contraseña"}
+              Guardar contraseña
             </button>
 
             {state.error ? (
