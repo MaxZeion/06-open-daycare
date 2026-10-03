@@ -84,9 +84,12 @@ export function LoginForm({ next }: LoginFormProps) {
             />
 
             <div className="mt-[10px] mb-5 text-right">
-              <span className="cursor-pointer text-[13.5px] font-bold text-accent-deep">
+              <Link
+                href="/forgot-password"
+                className="text-[13.5px] font-bold text-accent-deep"
+              >
                 ¿Olvidaste tu contraseña?
-              </span>
+              </Link>
             </div>
 
             <button
