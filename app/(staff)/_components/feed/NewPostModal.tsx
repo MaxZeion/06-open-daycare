@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  startTransition,
   useActionState,
   useEffect,
   useId,
@@ -105,19 +106,8 @@ export function NewPostModal({ kids }: { kids: Kid[] }) {
     };
   }, [modalOpen, closeModal]);
 
-  function resetFields() {
-    setSelectedIds([]);
-    setAllRoom(false);
-    setKind("actividad");
-    setBody("");
-    setFiles([]);
-    setAttempted(false);
-  }
-
   useEffect(() => {
     if (state.ok) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      resetFields();
       closeModal();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -160,10 +150,24 @@ export function NewPostModal({ kids }: { kids: Kid[] }) {
   const showDescriptionError = attempted && descriptionInvalid;
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     if (recipientInvalid || descriptionInvalid) {
-      event.preventDefault();
       setAttempted(true);
+      return;
     }
+    const formData = new FormData();
+    formData.set("kind", kind);
+    formData.set("body", body);
+    formData.set("allRoom", allRoom ? "true" : "false");
+    for (const id of selectedIds) {
+      formData.append("childIds", id);
+    }
+    for (const file of files) {
+      formData.append("files", file, file.name);
+    }
+    startTransition(() => {
+      formAction(formData);
+    });
   }
 
   const visibleKids = allRoom ? [] : kids;
@@ -206,7 +210,6 @@ export function NewPostModal({ kids }: { kids: Kid[] }) {
 
         <form
           id="new-post-form"
-          action={formAction}
           onSubmit={handleSubmit}
           noValidate
           className="overflow-y-auto px-[26px] py-6"
@@ -387,7 +390,7 @@ export function NewPostModal({ kids }: { kids: Kid[] }) {
                 type="file"
                 name="files"
                 multiple
-                accept="image/jpeg,image/png,image/webp,image/gif"
+                accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif,image/avif,image/bmp"
                 onChange={handleFiles}
                 className="sr-only"
               />

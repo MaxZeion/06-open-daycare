@@ -13,6 +13,7 @@ import {
 } from "@/utils/uploads";
 
 const MAX_PHOTOS = 5;
+const MAX_TOTAL_BYTES = 25 * 1024 * 1024;
 
 export type CreatePostResult =
   | { ok: true }
@@ -71,9 +72,20 @@ export async function createPostAction(
     };
   }
 
+  const totalBytes = files.reduce((sum, file) => sum + file.size, 0);
+  if (totalBytes > MAX_TOTAL_BYTES) {
+    return {
+      ok: false,
+      error: `Las fotos suman ${(totalBytes / 1024 / 1024).toFixed(1)}MB; el máximo total es ${MAX_TOTAL_BYTES / 1024 / 1024}MB.`,
+    };
+  }
+
   for (const file of files) {
     if (!file.type.startsWith("image/")) {
-      return { ok: false, error: "Solo imágenes." };
+      return {
+        ok: false,
+        error: `La foto "${file.name}" no es una imagen.`,
+      };
     }
   }
 
