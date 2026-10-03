@@ -1,6 +1,6 @@
 # SPEC 18 — `utils/uploads/` reutilizable: validación y guardado seguros
 
-> **Status:** Draft
+> **Status:** Aprobado
 > **Depends on:** SPEC 16, SPEC 17
 > **Date:** 2026-10-03
 > **Objective:** Convertir `utils/uploads.ts` en un módulo reutilizable (`utils/uploads/`) con validadores componibles (MIME, tamaño, magic bytes, filename, lote), añadir sanitización de filename y bloqueo de extensiones ejecutables, y aplicar el wrapper al `createPostAction` para endurecer la subida de fotos.
