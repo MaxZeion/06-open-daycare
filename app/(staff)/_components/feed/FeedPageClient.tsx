@@ -11,10 +11,12 @@ export type FeedHeader =
 export function FeedPageClient({
   posts = [],
   header,
+  emptyState,
   children,
 }: {
   posts?: FeedPost[];
   header?: FeedHeader;
+  emptyState?: ReactNode;
   children?: ReactNode;
 }) {
   const effectiveHeader: FeedHeader =
@@ -56,6 +58,8 @@ export function FeedPageClient({
       </header>
 
       {children}
+
+      {emptyState}
 
       <div className="mb-3.5 flex items-center gap-3.5">
         <span className="text-[12.5px] font-extrabold tracking-[0.8px] text-divider-ink">

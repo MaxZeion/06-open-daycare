@@ -13,13 +13,13 @@ type NavItem = {
   label: string;
   icon: typeof HomeIcon;
   href?: string;
-  section?: "feed";
+  section?: "feed" | "summary";
   enabled?: boolean;
 };
 
 const NAV_ITEMS: NavItem[] = [
   { id: "feed", label: "Feed", icon: HomeIcon, href: "/familiar", section: "feed", enabled: true },
-  { id: "summary", label: "Resumen del día", icon: SunIcon, enabled: false },
+  { id: "summary", label: "Resumen del día", icon: SunIcon, href: "/resumen", section: "summary", enabled: true },
   { id: "account", label: "Mi cuenta", icon: UserIcon, enabled: false },
 ];
 
@@ -63,7 +63,7 @@ export function FamilySidebar({
   active = "feed",
   currentUser,
 }: {
-  active?: "feed";
+  active?: "feed" | "summary";
   currentUser: CurrentUser;
 }) {
   const initials = getInitials(currentUser.fullName);

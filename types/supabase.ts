@@ -64,6 +64,53 @@ export type Database = {
           },
         ]
       }
+      daily_summaries: {
+        Row: {
+          activities_count: number
+          child_id: string
+          created_at: string
+          date: string
+          highlight: string | null
+          id: string
+          meals_count: number
+          mood: string | null
+          sleep_minutes: number
+          updated_at: string
+        }
+        Insert: {
+          activities_count?: number
+          child_id: string
+          created_at?: string
+          date: string
+          highlight?: string | null
+          id?: string
+          meals_count?: number
+          mood?: string | null
+          sleep_minutes?: number
+          updated_at?: string
+        }
+        Update: {
+          activities_count?: number
+          child_id?: string
+          created_at?: string
+          date?: string
+          highlight?: string | null
+          id?: string
+          meals_count?: number
+          mood?: string | null
+          sleep_minutes?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_summaries_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       daycares: {
         Row: {
           created_at: string
@@ -391,6 +438,14 @@ export type Database = {
         Args: { p_invitation_id: string }
         Returns: undefined
       }
+      get_feed_for_parent: {
+        Args: { p_daycare_id: string; p_parent_id: string }
+        Returns: {
+          id: string
+        }[]
+      }
+      is_parent_of: { Args: { p_child_id: string }; Returns: boolean }
+      post_visible_to_parent: { Args: { p_post_id: string }; Returns: boolean }
       validate_invitation: {
         Args: { p_code: string }
         Returns: {
@@ -525,7 +580,7 @@ export type Enums<
 }
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-    ? Database["public"]["Enums"][DefaultSchemaEnumNameOrOptions]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
 
 export type CompositeTypes<
