@@ -20,7 +20,7 @@ export async function saveFileToBucket(
 ): Promise<SaveFileResult> {
   const ext = safeExtensionFromMime(file.type, options.extensionByMime);
   const filename = `${randomUUID()}.${ext}`;
-  const target = join(options.bucketDir, filename);
+  const target = join(/* turbopackIgnore: true */ options.bucketDir, filename);
 
   await mkdir(options.bucketDir, { recursive: true });
   const buffer = Buffer.from(await file.arrayBuffer());
