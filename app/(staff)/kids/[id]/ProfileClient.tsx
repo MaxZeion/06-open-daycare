@@ -4,9 +4,14 @@ import Link from "next/link";
 import { useState } from "react";
 import { ArrowLeftIcon, PlusIcon, SunIcon } from "@/components/shared/icons";
 import { AllergyBox } from "@/app/(staff)/_components/kids/AllergyBox";
+import {
+  EditKidModal,
+  type EditKidInitialValues,
+} from "@/app/(staff)/_components/kids/EditKidModal";
 import { InfoRow } from "@/app/(staff)/_components/kids/InfoRow";
 import { LinkParentModal } from "@/app/(staff)/_components/kids/LinkParentModal";
 import { ParentRow } from "@/app/(staff)/_components/kids/ParentRow";
+import type { RoomOption } from "@/app/(staff)/_components/kids/mapKid";
 import type { Kid, Parent } from "@/app/(staff)/_components/kids/mockKids";
 
 function InfoCard({ kid }: { kid: Kid }) {
@@ -71,17 +76,32 @@ function ParentsColumn({
 export function ProfileClient({
   kid,
   parents,
+  rooms,
+  initialEditValues,
   backHref = "/kids",
 }: {
   kid: Kid;
   parents: Parent[];
+  rooms: RoomOption[];
+  initialEditValues: EditKidInitialValues;
   backHref?: string;
 }) {
+  const [editOpen, setEditOpen] = useState(false);
   const [linkOpen, setLinkOpen] = useState(false);
 
   const allergyBoxNotes = [kid.allergyNotes, kid.medicalNotes]
     .filter((note): note is string => Boolean(note))
     .join(" · ");
+
+  function handleOpenEdit() {
+    setLinkOpen(false);
+    setEditOpen(true);
+  }
+
+  function handleOpenLinkParent() {
+    setEditOpen(false);
+    setLinkOpen(true);
+  }
 
   return (
     <>
@@ -112,6 +132,9 @@ export function ProfileClient({
             </div>
             <button
               type="button"
+              onClick={handleOpenEdit}
+              aria-haspopup="dialog"
+              aria-expanded={editOpen}
               className="shrink-0 rounded-[12px] border-[1.5px] border-border bg-surface px-4 py-[9px] text-[14px] font-bold text-idle"
             >
               Editar
@@ -125,7 +148,7 @@ export function ProfileClient({
 
         <ParentsColumn
           parents={parents}
-          onVincularClick={() => setLinkOpen(true)}
+          onVincularClick={handleOpenLinkParent}
         />
       </div>
 
@@ -134,6 +157,15 @@ export function ProfileClient({
           kidName={kid.name}
           childId={kid.id}
           onClose={() => setLinkOpen(false)}
+        />
+      ) : null}
+
+      {editOpen ? (
+        <EditKidModal
+          kid={kid}
+          rooms={rooms}
+          initialValues={initialEditValues}
+          onClose={() => setEditOpen(false)}
         />
       ) : null}
     </>

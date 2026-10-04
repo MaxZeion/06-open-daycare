@@ -19,6 +19,11 @@ export interface AddKidState {
   ok?: boolean;
 }
 
+export interface UpdateKidState {
+  error?: string;
+  ok?: boolean;
+}
+
 function toIsoDate(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -66,6 +71,64 @@ export async function addKid(
   }
 
   revalidatePath("/kids");
+  return { ok: true };
+}
+
+export async function updateKid(
+  _prevState: UpdateKidState,
+  formData: FormData,
+): Promise<UpdateKidState> {
+  const childId = String(formData.get("child_id") ?? "").trim();
+  const fullName = String(formData.get("full_name") ?? "").trim();
+  const birthDate = String(formData.get("birth_date") ?? "").trim();
+  const roomId = String(formData.get("room_id") ?? "").trim();
+  const allergies = String(formData.get("allergies") ?? "");
+  const medicalNotes = String(formData.get("medical_notes") ?? "").trim();
+
+  if (!isUuid(childId)) {
+    return { error: "Niño no válido." };
+  }
+
+  const nameError = validateFullName(fullName);
+  if (nameError) {
+    return { error: nameError };
+  }
+
+  const parsedBirthDate = parseSpanishDate(birthDate);
+  if (!parsedBirthDate) {
+    return { error: "Fecha no válida." };
+  }
+
+  if (!isUuid(roomId)) {
+    return { error: "Selecciona una sala válida." };
+  }
+
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+
+  const { data, error } = await supabase
+    .from("children")
+    .update({
+      full_name: fullName,
+      room_id: roomId,
+      birth_date: toIsoDate(parsedBirthDate),
+      allergy_tags: textToTags(allergies),
+      medical_notes: medicalNotes || null,
+    })
+    .eq("id", childId)
+    .select("id")
+    .maybeSingle();
+
+  if (error) {
+    return { error: "No se pudo guardar el niño. Inténtalo de nuevo." };
+  }
+
+  if (!data) {
+    return { error: "Niño no válido." };
+  }
+
+  revalidatePath("/kids");
+  revalidatePath(`/kids/${childId}`);
   return { ok: true };
 }
 

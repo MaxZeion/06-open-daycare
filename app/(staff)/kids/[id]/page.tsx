@@ -9,8 +9,10 @@ import {
 import { createClient } from "@/utils/supabase/server";
 import {
   avatarFor,
+  formatDateInput,
   mapChild,
   relationshipToSpanish,
+  tagsToInputText,
   type ChildrenRow,
   type Relationship,
   type RoomOption,
@@ -29,6 +31,16 @@ type InvitationRow = {
   full_name: string;
   relationship: Relationship;
 };
+
+function buildInitialEditValues(row: ChildrenRow) {
+  return {
+    fullName: row.full_name.trim(),
+    birthDate: formatDateInput(row.birth_date),
+    roomId: row.room_id ?? "",
+    allergies: tagsToInputText(row.allergy_tags),
+    medicalNotes: row.medical_notes ?? "",
+  };
+}
 
 async function fetchParents(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -123,21 +135,25 @@ export default async function KidProfilePage({
       name: room.name,
     })) ?? [];
 
-  const kids = ((childrenData as ChildrenRow[] | null) ?? []).map((row) =>
-    mapChild(row, rooms),
-  );
+  const childRows = (childrenData as ChildrenRow[] | null) ?? [];
 
-  const kid = kids.find((item) => item.id === id) ?? null;
+  const kids = childRows.map((row) => mapChild(row, rooms));
+
+  const childRow = childRows.find((item) => item.id === id) ?? null;
+
+  const kid = childRow ? mapChild(childRow, rooms) : null;
 
   const parents = kid ? await fetchParents(supabase, kid.id) : [];
 
   return (
     <StaffShell active="kids" kids={kids}>
       <div className="mx-auto w-full max-w-[820px] px-5 pt-8 pb-24 md:px-10 md:pt-[34px] md:pb-20">
-        {kid ? (
+        {kid && childRow ? (
           <ProfileClient
             kid={kid}
             parents={parents}
+            rooms={rooms}
+            initialEditValues={buildInitialEditValues(childRow)}
             backHref={`/kids?room=${kid.roomId}`}
           />
         ) : (
