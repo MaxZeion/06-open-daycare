@@ -11,21 +11,74 @@
 --   - parent: solo posts SIN post_children (anuncios / "toda la sala") o
 --     cuyos niños tienen vínculo con él en parent_children.
 --
--- Adaptación sobre el SQL del spec: `posts` no tiene columna `daycare_id`;
--- el daycare del post se resuelve con el helper SECURITY DEFINER
--- `daycare_of_post()` (migration 16), que evita recursar contra la policy
--- de public.users. Las policies corren como owner sobre las tablas que
--- referencian → los EXISTS a post_children/parent_children no aplican RLS
--- de esas tablas (sin recursión).
+-- Adaptaciones sobre el SQL del spec:
+--   1. `posts` no tiene columna `daycare_id`; el daycare del post se
+--      resuelve con el helper SECURITY DEFINER `daycare_of_post()`
+--      (migration 16), que evita recursar contra la policy de public.users.
+--   2. Los EXISTS inline sobre post_children/parent_children del spec
+--      causaron "infinite recursion detected in policy for relation
+--      posts": las subqueries dentro de una policy corren con RLS como el
+--      usuario invocante, y `post_children_modify_author` (FOR ALL → aplica
+--      también a SELECT) lee `posts` → ciclo posts ↔ post_children.
+--      Fix: helpers SECURITY DEFINER (bypass RLS vía rol owner postgres con
+--      BYPASSRLS), mismo patrón de bypass documentado en Risks del spec.
+--      `is_parent_of(uuid)` revive aquí con el diseño original de la
+--      cabecera de migration 11.
 --
 -- KEEP IN SYNC con el RPC public.get_feed_for_parent (migration
 -- 20-rpc_get_feed_for_parent): misma regla de filtrado, defense in depth.
 --
--- Roles helper: se usa `(select auth.jwt() ...)` single-eval y
--- `(select auth.uid())`, mismo patrón que migrations 11/16.
---
 -- NO se tocan: posts_insert_staff, posts_modify_author,
 -- post_children_modify_author, post_photos_* (solo cambia el SELECT).
+
+-- ========================================================================
+-- HELPERS SECURITY DEFINER (bypass RLS, sin recursión)
+-- ========================================================================
+
+-- is_parent_of: ¿el invocante es padre del niño? auth.uid() lee el claim
+-- de request.jwt.claims → funciona dentro de un SECURITY DEFINER.
+create or replace function public.is_parent_of(p_child_id uuid)
+returns boolean
+language sql
+security definer
+set search_path = ''
+stable
+as $$
+  select exists (
+    select 1 from public.parent_children
+    where child_id = p_child_id
+      and parent_id = (select auth.uid())
+  );
+$$;
+
+revoke execute on function public.is_parent_of(uuid) from public, anon;
+grant  execute on function public.is_parent_of(uuid) to authenticated;
+
+-- post_visible_to_parent: post general (sin niños dirigidos) o con uno de
+-- SUS niños. Evalúa post_children/parent_children como owner (bypass RLS)
+-- → corta el ciclo posts ↔ post_children.
+create or replace function public.post_visible_to_parent(p_post_id uuid)
+returns boolean
+language sql
+security definer
+set search_path = ''
+stable
+as $$
+  select not exists (
+           select 1 from public.post_children
+           where post_id = p_post_id
+         )
+     or exists (
+           select 1
+             from public.post_children pc
+             join public.parent_children pch on pch.child_id = pc.child_id
+            where pc.post_id = p_post_id
+              and pch.parent_id = (select auth.uid())
+         );
+$$;
+
+revoke execute on function public.post_visible_to_parent(uuid) from public, anon;
+grant  execute on function public.post_visible_to_parent(uuid) to authenticated;
 
 -- ========================================================================
 -- POSTS: reemplaza posts_select_same_daycare
@@ -44,20 +97,8 @@ create policy posts_select_parent_or_staff_same_daycare
       -- staff/admin: todo el feed del daycare.
       (select auth.jwt() -> 'app_metadata' ->> 'role') in ('staff', 'admin')
       or
-      -- parent: anuncio general (sin niños dirigidos)…
-      not exists (
-        select 1 from public.post_children pc
-        where pc.post_id = posts.id
-      )
-      or
-      -- …o post que incluye a uno de SUS niños.
-      exists (
-        select 1
-          from public.post_children pc
-          join public.parent_children pch on pch.child_id = pc.child_id
-         where pc.post_id = posts.id
-           and pch.parent_id = (select auth.uid())
-      )
+      -- parent: anuncio general o post que incluye a uno de SUS niños.
+      public.post_visible_to_parent(id)
     )
   );
 
@@ -79,10 +120,6 @@ create policy post_children_select_parent_or_staff_same_daycare
       (select auth.jwt() -> 'app_metadata' ->> 'role') in ('staff', 'admin')
       or
       -- parent: solo filas de SUS niños.
-      exists (
-        select 1 from public.parent_children pch
-        where pch.child_id = post_children.child_id
-          and pch.parent_id = (select auth.uid())
-      )
+      public.is_parent_of(child_id)
     )
   );
