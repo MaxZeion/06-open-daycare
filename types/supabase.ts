@@ -431,8 +431,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      daycare_of_child: { Args: { p_child_id: string }; Returns: string }
-      daycare_of_post: { Args: { p_post_id: string }; Returns: string }
       email_exists: { Args: { p_email: string }; Returns: boolean }
       expire_invitation: {
         Args: { p_invitation_id: string }
@@ -444,8 +442,6 @@ export type Database = {
           id: string
         }[]
       }
-      is_parent_of: { Args: { p_child_id: string }; Returns: boolean }
-      post_visible_to_parent: { Args: { p_post_id: string }; Returns: boolean }
       validate_invitation: {
         Args: { p_code: string }
         Returns: {
