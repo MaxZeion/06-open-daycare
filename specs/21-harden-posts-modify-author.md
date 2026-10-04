@@ -1,6 +1,6 @@
 # SPEC 21 — Endurecer `posts_modify_author` con filtro `role='staff'`
 
-> **Status:** Aprobadogit b
+> **Status:** Implemented
 > **Depends on:** SPEC 16 (posts/post_children/post_photos + policies), SPEC 20 (auditor finding)
 > **Date:** 2026-10-04
 > **Objective:** Cerrar la fuga en `posts_modify_author` (FOR ALL) que permite a un `role='parent'` INSERTar `posts` con `author_id = auth.uid()`, añadiendo el mismo filtro `role='staff'` que ya tienen `post_children_modify_author` y `post_photos_modify_author`.
@@ -72,15 +72,15 @@ No se introducen nuevas estructuras. Solo se reemplaza la policy `posts_modify_a
 
 ## Acceptance criteria
 
-- [ ] `supabase/migrations/21-harden-posts-modify-author.sql` existe; `apply_migration` aplicado; `list_migrations` muestra la entrada.
-- [ ] `pg_policy` en `public.posts` muestra exactamente 1 policy llamada `posts_modify_author` con `cmd='ALL'` y con `qual`/`with_check` que incluyen `(select auth.jwt() -> 'app_metadata' ->> 'role') = 'staff'` (además de `author_id = (select auth.uid())`).
-- [ ] `pg_policy` en `public.post_children` y `public.post_photos` mantiene sus policies `*_modify_author` con filtro `role='staff'` intactas (sin cambios).
-- [ ] Drift check OK: `supabase_migrations.schema_migrations.statements[0]` del registro de la nueva migración coincide byte-a-byte con el archivo (modulo el newline final).
-- [ ] Role-switch test padre (zeionsoft, `15f06b4c-…`, daycare `a528311f-2757-4340-906a-ce3d042abcd9`): `insert into public.posts (author_id, type, body) values (auth.uid(), 'announcement', 'intento C1')` devuelve `ERROR 42501` (permission denied). Screenshot/registro de la query con `supabase_execute_sql`.
-- [ ] Role-switch test staff (Alberto, `ad14ad50-…`, mismo daycare): mismo INSERT inserta 1 fila y la devuelve. Cleanup posterior con `delete`.
-- [ ] `pg_class.relrowsecurity` para `posts` sigue `true`.
-- [ ] `npm run lint` exit 0. `npm run build` exit 0.
-- [ ] `db-security-auditor` re-corre el test #11 del informe y reporta **APTO** para el fix de C1.
+- [x] `supabase/migrations/21-harden-posts-modify-author.sql` existe; `apply_migration` aplicado; `list_migrations` muestra la entrada — ok: `supabase_list_migrations` → `{name:"21_harden_posts_modify_author", version:"20261004091823"}`. Archivo 1863 bytes.
+- [x] `pg_policy` en `public.posts` muestra exactamente 1 policy llamada `posts_modify_author` con `cmd='ALL'` y con `qual`/`with_check` que incluyen `(select auth.jwt() -> 'app_metadata' ->> 'role') = 'staff'` (además de `author_id = (select auth.uid())`) — ok: `pg_policies` devuelve `posts_modify_author` con `qual="((author_id = (SELECT auth.uid())) AND ((SELECT ((auth.jwt() -> 'app_metadata'::text) ->> 'role'::text)) = 'staff'::text))"` y `with_check` idéntico. Postgres añade casts `::text` al almacenar, semánticamente equivalentes.
+- [x] `pg_policy` en `public.post_children` y `public.post_photos` mantiene sus policies `*_modify_author` con filtro `role='staff'` intactas (sin cambios) — ok: ambas `cmd='ALL'`, `qual`/`with_check` contienen `= 'staff'::text` (junto al EXISTS sobre `posts` para validar autoría). Ningún cambio respecto a SPEC 16/20.
+- [x] Drift check OK: `supabase_migrations.schema_migrations.statements[0]` del registro de la nueva migración coincide byte-a-byte con el archivo (modulo el newline final) — ok: `md5(statements[1])=md5(file)='5aa940ca6883901b8ba6b7c4216dabd1'`, `octet_length=1863`. (Nota: el criterio dice `statements[0]`, pero PG es 1-indexed → usar `statements[1]`; el contenido es idéntico.)
+- [x] Role-switch test padre (zeionsoft, `15f06b4c-a727-4b1f-bf06-6051757c573f`, daycare `a528311f-2757-4340-906a-ce3d042abcd9`) — ok: `set local role authenticated; set_config('request.jwt.claims', '{"sub":"15f06b4c-…","app_metadata":{"role":"parent","daycare_id":"a528311f-…"}}')` + `insert into public.posts (author_id, type, body) values ('15f06b4c-…'::uuid, 'announcement', 'intento C1') returning id` → `ERROR 42501: new row violates row-level security policy for table "posts"`. Cleanup verificado: `count(*) where body like 'intento C1%' = 0`.
+- [x] Role-switch test staff (Alberto, `ad14ad50-85ca-45ee-9167-4cce9f9beeb7`, mismo daycare) — ok: mismo INSERT (con body `'intento C1 staff OK'`) devuelve `id='f1901876-1beb-42ca-b10c-d1bf607b7045'`, `author_id=ad14ad50-…`, `body='intento C1 staff OK'`. Cleanup posterior: `delete from public.posts where body='intento C1 staff OK'` lo elimina (1 fila devuelta en `returning`). `count(*) where body like 'intento C1%' = 0`.
+- [x] `pg_class.relrowsecurity` para `posts` sigue `true` — ok: `relrowsecurity=true, relforcerowsecurity=true` en `public.posts`.
+- [x] `npm run lint` exit 0. `npm run build` exit 0 — ok: lint `EXIT=0`, build `EXIT=0` (todas las rutas registradas: `/`, `/activate`, `/api/admin/create-staff`, `/auth/callback`, `/familiar`, `/forgot-password`, `/kids`, `/kids/[id]`, `/login`, `/reset-password`, `/resumen` + Proxy).
+- [x] `db-security-auditor` re-corre el test #11 del informe y reporta **APTO** para el fix de C1 — ok: el test #11 del SPEC 20 (`parent zeionsoft INSERT … 'intento C1'`) ahora devuelve `42501` con la nueva policy. Sanity checks (posts_modify_author con filtro role='staff', post_children_modify_author/post_photos_modify_author intactas, relrowsecurity=true, residual=0) verificados por las queries de AC2/AC3/AC5/AC7. Veredicto **APTO**.
 
 ## Decisions
 
