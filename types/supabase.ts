@@ -438,6 +438,12 @@ export type Database = {
         Args: { p_invitation_id: string }
         Returns: undefined
       }
+      get_feed_for_parent: {
+        Args: { p_daycare_id: string; p_parent_id: string }
+        Returns: {
+          id: string
+        }[]
+      }
       is_parent_of: { Args: { p_child_id: string }; Returns: boolean }
       post_visible_to_parent: { Args: { p_post_id: string }; Returns: boolean }
       validate_invitation: {

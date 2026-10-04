@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { createClient } from "./server";
 import { getCurrentUser } from "./auth";
+import type { CurrentUser } from "./types";
 import type { PostKind } from "@/app/(staff)/_components/feed/mockPosts";
 import { avatarFor } from "@/app/(staff)/_components/kids/mapKid";
 
@@ -135,6 +136,47 @@ function formatTimeEuropeMadrid(publishedAtIso: string): string {
   }).format(new Date(publishedAtIso));
 }
 
+const POSTS_FEED_SELECT = `
+  id, type, body, published_at, author_id,
+  author:author_id ( full_name ),
+  post_children (
+    child_id,
+    children:child_id ( id, full_name, room:room_id ( name ) )
+  ),
+  post_photos ( id, url, width, height, position )
+`;
+
+function toFeedPost(row: PostRow, viewerId: string): FeedPost {
+  const children = row.post_children ?? [];
+  const firstChild = children[0]?.children ?? null;
+
+  const author: FeedPostAuthor = firstChild
+    ? buildAuthorFromChild(firstChild.id, firstChild.full_name)
+    : buildAuthorForAnnouncement();
+
+  const photos: FeedPhoto[] = (row.post_photos ?? [])
+    .slice()
+    .sort((a, b) => a.position - b.position)
+    .map((p) => ({
+      url: p.url,
+      width: p.width ?? undefined,
+      height: p.height ?? undefined,
+    }));
+
+  return {
+    id: row.id,
+    author,
+    time: formatTimeEuropeMadrid(row.published_at),
+    publishedBy: formatPublishedBy(row, viewerId),
+    kind: MAP_KIND[row.type] ?? "actividad",
+    recipient: buildRecipient(children),
+    body: row.body,
+    photos,
+    likes: 0,
+    comments: 0,
+  };
+}
+
 export async function listFeedPosts(): Promise<FeedPost[]> {
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
@@ -142,17 +184,7 @@ export async function listFeedPosts(): Promise<FeedPost[]> {
 
   const { data, error } = await supabase
     .from("posts")
-    .select(
-      `
-      id, type, body, published_at, author_id,
-      author:author_id ( full_name ),
-      post_children (
-        child_id,
-        children:child_id ( id, full_name, room:room_id ( name ) )
-      ),
-      post_photos ( id, url, width, height, position )
-      `,
-    )
+    .select(POSTS_FEED_SELECT)
     .order("published_at", { ascending: false })
     .returns<PostRow[]>();
 
@@ -161,34 +193,42 @@ export async function listFeedPosts(): Promise<FeedPost[]> {
   }
   if (!data) return [];
 
-  return data.map((row): FeedPost => {
-    const children = row.post_children ?? [];
-    const firstChild = children[0]?.children ?? null;
+  return data.map((row) => toFeedPost(row, user.userId));
+}
 
-    const author: FeedPostAuthor = firstChild
-      ? buildAuthorFromChild(firstChild.id, firstChild.full_name)
-      : buildAuthorForAnnouncement();
+export async function listFeedPostsForParent(
+  currentUser: CurrentUser,
+): Promise<FeedPost[]> {
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
 
-    const photos: FeedPhoto[] = (row.post_photos ?? [])
-      .slice()
-      .sort((a, b) => a.position - b.position)
-      .map((p) => ({
-        url: p.url,
-        width: p.width ?? undefined,
-        height: p.height ?? undefined,
-      }));
+  const { data: rows, error: rpcError } = await supabase.rpc(
+    "get_feed_for_parent",
+    {
+      p_parent_id: currentUser.userId,
+      p_daycare_id: currentUser.daycareId,
+    },
+  );
 
-    return {
-      id: row.id,
-      author,
-      time: formatTimeEuropeMadrid(row.published_at),
-      publishedBy: formatPublishedBy(row, user.userId),
-      kind: MAP_KIND[row.type] ?? "actividad",
-      recipient: buildRecipient(children),
-      body: row.body,
-      photos,
-      likes: 0,
-      comments: 0,
-    };
-  });
+  if (rpcError) {
+    throw rpcError;
+  }
+  const visibleIds = rows as Array<{ id: string }> | null;
+  if (!visibleIds || visibleIds.length === 0) return [];
+
+  const ids = visibleIds.map((row) => row.id);
+
+  const { data, error } = await supabase
+    .from("posts")
+    .select(POSTS_FEED_SELECT)
+    .in("id", ids)
+    .order("published_at", { ascending: false })
+    .returns<PostRow[]>();
+
+  if (error) {
+    throw error;
+  }
+  if (!data) return [];
+
+  return data.map((row) => toFeedPost(row, currentUser.userId));
 }
