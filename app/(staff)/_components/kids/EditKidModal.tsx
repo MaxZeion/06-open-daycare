@@ -1,8 +1,12 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useActionState, useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ChevronDownIcon } from "@/components/shared/icons";
+import {
+  updateKid,
+  type UpdateKidState,
+} from "@/app/(staff)/kids/actions";
 import { applyDateMask, parseSpanishDate } from "./dateMask";
 import { validateFullName, type RoomOption } from "./mapKid";
 import type { Kid } from "./mockKids";
@@ -12,6 +16,8 @@ const FIELD_CLASSES =
 
 const FOCUSABLE_SELECTOR =
   'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+const INITIAL_STATE: UpdateKidState = {};
 
 export type EditKidInitialValues = {
   fullName: string;
@@ -34,6 +40,10 @@ export function EditKidModal({
   initialValues,
   onClose,
 }: EditKidModalProps) {
+  const [state, formAction, isPending] = useActionState<UpdateKidState, FormData>(
+    updateKid,
+    INITIAL_STATE,
+  );
   const [name, setName] = useState(initialValues.fullName);
   const [birthDate, setBirthDate] = useState(initialValues.birthDate);
   const [roomId, setRoomId] = useState(initialValues.roomId);
@@ -42,6 +52,7 @@ export function EditKidModal({
   const [attempted, setAttempted] = useState(false);
 
   const dialogRef = useRef<HTMLDivElement>(null);
+  const closedOnSuccess = useRef(false);
   const onCloseRef = useRef(onClose);
   useEffect(() => {
     onCloseRef.current = onClose;
@@ -67,6 +78,13 @@ export function EditKidModal({
       previouslyFocused?.focus?.();
     };
   }, []);
+
+  useEffect(() => {
+    if (state.ok && !closedOnSuccess.current) {
+      closedOnSuccess.current = true;
+      onCloseRef.current();
+    }
+  }, [state]);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -118,8 +136,10 @@ export function EditKidModal({
   const showDateError = attempted && dateError !== null;
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setAttempted(true);
+    if (nameError !== null || dateError !== null) {
+      event.preventDefault();
+      setAttempted(true);
+    }
   }
 
   return createPortal(
@@ -149,18 +169,32 @@ export function EditKidModal({
           <button
             type="submit"
             form="edit-kid-form"
-            className="text-[15px] font-extrabold text-accent"
+            disabled={isPending}
+            aria-busy={isPending}
+            className="text-[15px] font-extrabold text-accent disabled:opacity-60"
           >
-            Guardar
+            {isPending ? "Guardando…" : "Guardar"}
           </button>
         </header>
 
         <form
           id="edit-kid-form"
+          action={formAction}
           onSubmit={handleSubmit}
           noValidate
           className="overflow-y-auto px-[26px] py-6"
         >
+          <input type="hidden" name="child_id" value={kid.id} />
+
+          {state.error ? (
+            <p
+              role="alert"
+              className="mb-4 rounded-[12px] bg-alert-box-bg px-4 py-3 text-[13.5px] font-bold text-alert-title"
+            >
+              {state.error}
+            </p>
+          ) : null}
+
           <div className="mb-[18px]">
             <label
               htmlFor={ids.fullName}
