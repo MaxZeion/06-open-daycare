@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { ArrowLeftIcon, PlusIcon, SunIcon } from "@/components/shared/icons";
 import { AllergyBox } from "@/app/(staff)/_components/kids/AllergyBox";
+import { EditKidModal } from "@/app/(staff)/_components/kids/EditKidModal";
 import { InfoRow } from "@/app/(staff)/_components/kids/InfoRow";
 import { LinkParentModal } from "@/app/(staff)/_components/kids/LinkParentModal";
 import { ParentRow } from "@/app/(staff)/_components/kids/ParentRow";
@@ -77,6 +78,7 @@ export function ProfileClient({
   parents: Parent[];
   backHref?: string;
 }) {
+  const [editOpen, setEditOpen] = useState(false);
   const [linkOpen, setLinkOpen] = useState(false);
 
   const allergyBoxNotes = [kid.allergyNotes, kid.medicalNotes]
@@ -112,6 +114,9 @@ export function ProfileClient({
             </div>
             <button
               type="button"
+              onClick={() => setEditOpen(true)}
+              aria-haspopup="dialog"
+              aria-expanded={editOpen}
               className="shrink-0 rounded-[12px] border-[1.5px] border-border bg-surface px-4 py-[9px] text-[14px] font-bold text-idle"
             >
               Editar
@@ -134,6 +139,13 @@ export function ProfileClient({
           kidName={kid.name}
           childId={kid.id}
           onClose={() => setLinkOpen(false)}
+        />
+      ) : null}
+
+      {editOpen ? (
+        <EditKidModal
+          kid={kid}
+          onClose={() => setEditOpen(false)}
         />
       ) : null}
     </>
