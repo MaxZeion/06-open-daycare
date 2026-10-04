@@ -32,6 +32,16 @@ type InvitationRow = {
   relationship: Relationship;
 };
 
+function buildInitialEditValues(row: ChildrenRow) {
+  return {
+    fullName: row.full_name.trim(),
+    birthDate: formatDateInput(row.birth_date),
+    roomId: row.room_id ?? "",
+    allergies: tagsToInputText(row.allergy_tags),
+    medicalNotes: row.medical_notes ?? "",
+  };
+}
+
 async function fetchParents(
   supabase: Awaited<ReturnType<typeof createClient>>,
   childId: string,
@@ -125,11 +135,13 @@ export default async function KidProfilePage({
       name: room.name,
     })) ?? [];
 
-  const kids = ((childrenData as ChildrenRow[] | null) ?? []).map((row) =>
-    mapChild(row, rooms),
-  );
+  const childRows = (childrenData as ChildrenRow[] | null) ?? [];
 
-  const kid = kids.find((item) => item.id === id) ?? null;
+  const kids = childRows.map((row) => mapChild(row, rooms));
+
+  const childRow = childRows.find((item) => item.id === id) ?? null;
+
+  const kid = childRow ? mapChild(childRow, rooms) : null;
 
   const parents = kid ? await fetchParents(supabase, kid.id) : [];
 
@@ -141,20 +153,7 @@ export default async function KidProfilePage({
             kid={kid}
             parents={parents}
             rooms={rooms}
-            initialEditValues={{
-              fullName: childrenData
-                ?.find((item) => item.id === kid.id)
-                ?.full_name.trim() ?? kid.name,
-              birthDate: formatDateInput(
-                childrenData?.find((item) => item.id === kid.id)?.birth_date ?? "",
-              ),
-              roomId: childrenData?.find((item) => item.id === kid.id)?.room_id ?? kid.roomId,
-              allergies: tagsToInputText(
-                childrenData?.find((item) => item.id === kid.id)?.allergy_tags ?? [],
-              ),
-              medicalNotes:
-                childrenData?.find((item) => item.id === kid.id)?.medical_notes ?? "",
-            }}
+            initialEditValues={buildInitialEditValues(childRow)}
             backHref={`/kids?room=${kid.roomId}`}
           />
         ) : (
