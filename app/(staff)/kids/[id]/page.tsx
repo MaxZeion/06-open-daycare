@@ -9,8 +9,10 @@ import {
 import { createClient } from "@/utils/supabase/server";
 import {
   avatarFor,
+  formatDateInput,
   mapChild,
   relationshipToSpanish,
+  tagsToInputText,
   type ChildrenRow,
   type Relationship,
   type RoomOption,
@@ -138,6 +140,21 @@ export default async function KidProfilePage({
           <ProfileClient
             kid={kid}
             parents={parents}
+            rooms={rooms}
+            initialEditValues={{
+              fullName: childrenData
+                ?.find((item) => item.id === kid.id)
+                ?.full_name.trim() ?? kid.name,
+              birthDate: formatDateInput(
+                childrenData?.find((item) => item.id === kid.id)?.birth_date ?? "",
+              ),
+              roomId: childrenData?.find((item) => item.id === kid.id)?.room_id ?? kid.roomId,
+              allergies: tagsToInputText(
+                childrenData?.find((item) => item.id === kid.id)?.allergy_tags ?? [],
+              ),
+              medicalNotes:
+                childrenData?.find((item) => item.id === kid.id)?.medical_notes ?? "",
+            }}
             backHref={`/kids?room=${kid.roomId}`}
           />
         ) : (

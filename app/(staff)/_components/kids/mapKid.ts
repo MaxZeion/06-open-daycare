@@ -108,6 +108,14 @@ export function formatSpanishDate(iso: string): string {
   return `${date.getDate()} ${SPANISH_MONTHS[date.getMonth()]} ${date.getFullYear()}`;
 }
 
+export function formatDateInput(iso: string): string {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  if (!match) {
+    return "";
+  }
+  return `${match[3]}/${match[2]}/${match[1]}`;
+}
+
 export function formatSpanishMonthYear(iso: string): string {
   const date = isoToDate(iso);
   if (!date) {
@@ -130,6 +138,14 @@ export function textToTags(raw: string): string[] {
     tags.push("lactose");
   }
   return tags;
+}
+
+export function tagsToInputText(tags: string[]): string {
+  return tags
+    .map((tag) => TAG_TO_ALLERGY[tag])
+    .filter((label): label is AllergyTag => label !== undefined)
+    .map((label) => label.charAt(0).toUpperCase() + label.slice(1))
+    .join(", ");
 }
 
 export function tagsToAllergy(tags: string[]): AllergyTag | undefined {

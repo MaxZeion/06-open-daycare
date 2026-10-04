@@ -4,10 +4,14 @@ import Link from "next/link";
 import { useState } from "react";
 import { ArrowLeftIcon, PlusIcon, SunIcon } from "@/components/shared/icons";
 import { AllergyBox } from "@/app/(staff)/_components/kids/AllergyBox";
-import { EditKidModal } from "@/app/(staff)/_components/kids/EditKidModal";
+import {
+  EditKidModal,
+  type EditKidInitialValues,
+} from "@/app/(staff)/_components/kids/EditKidModal";
 import { InfoRow } from "@/app/(staff)/_components/kids/InfoRow";
 import { LinkParentModal } from "@/app/(staff)/_components/kids/LinkParentModal";
 import { ParentRow } from "@/app/(staff)/_components/kids/ParentRow";
+import type { RoomOption } from "@/app/(staff)/_components/kids/mapKid";
 import type { Kid, Parent } from "@/app/(staff)/_components/kids/mockKids";
 
 function InfoCard({ kid }: { kid: Kid }) {
@@ -72,10 +76,14 @@ function ParentsColumn({
 export function ProfileClient({
   kid,
   parents,
+  rooms,
+  initialEditValues,
   backHref = "/kids",
 }: {
   kid: Kid;
   parents: Parent[];
+  rooms: RoomOption[];
+  initialEditValues: EditKidInitialValues;
   backHref?: string;
 }) {
   const [editOpen, setEditOpen] = useState(false);
@@ -145,6 +153,8 @@ export function ProfileClient({
       {editOpen ? (
         <EditKidModal
           kid={kid}
+          rooms={rooms}
+          initialValues={initialEditValues}
           onClose={() => setEditOpen(false)}
         />
       ) : null}
