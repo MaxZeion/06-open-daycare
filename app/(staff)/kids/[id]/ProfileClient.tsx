@@ -93,6 +93,16 @@ export function ProfileClient({
     .filter((note): note is string => Boolean(note))
     .join(" · ");
 
+  function handleOpenEdit() {
+    setLinkOpen(false);
+    setEditOpen(true);
+  }
+
+  function handleOpenLinkParent() {
+    setEditOpen(false);
+    setLinkOpen(true);
+  }
+
   return (
     <>
       <Link
@@ -122,7 +132,7 @@ export function ProfileClient({
             </div>
             <button
               type="button"
-              onClick={() => setEditOpen(true)}
+              onClick={handleOpenEdit}
               aria-haspopup="dialog"
               aria-expanded={editOpen}
               className="shrink-0 rounded-[12px] border-[1.5px] border-border bg-surface px-4 py-[9px] text-[14px] font-bold text-idle"
@@ -138,7 +148,7 @@ export function ProfileClient({
 
         <ParentsColumn
           parents={parents}
-          onVincularClick={() => setLinkOpen(true)}
+          onVincularClick={handleOpenLinkParent}
         />
       </div>
 
