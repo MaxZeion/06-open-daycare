@@ -12,7 +12,7 @@ export function FamilyShellClient({
 }: {
   children: ReactNode;
   currentUser: CurrentUser;
-  active?: "feed";
+  active?: "feed" | "summary";
 }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
 

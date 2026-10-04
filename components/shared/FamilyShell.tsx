@@ -7,7 +7,7 @@ export async function FamilyShell({
   active = "feed",
 }: {
   children: ReactNode;
-  active?: "feed";
+  active?: "feed" | "summary";
 }) {
   const currentUser = await getCurrentUser();
   return (

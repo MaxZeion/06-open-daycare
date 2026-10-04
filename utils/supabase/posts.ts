@@ -29,6 +29,8 @@ export interface FeedPost {
   photos: FeedPhoto[];
   likes: number;
   comments: number;
+  childIds?: string[];
+  publishedAt?: string;
 }
 
 export const MAP_KIND: Record<string, PostKind> = {
@@ -174,6 +176,8 @@ function toFeedPost(row: PostRow, viewerId: string): FeedPost {
     photos,
     likes: 0,
     comments: 0,
+    childIds: children.map((pc) => pc.child_id),
+    publishedAt: row.published_at,
   };
 }
 
