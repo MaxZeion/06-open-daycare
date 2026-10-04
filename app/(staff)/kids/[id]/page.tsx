@@ -148,7 +148,7 @@ export default async function KidProfilePage({
   return (
     <StaffShell active="kids" kids={kids}>
       <div className="mx-auto w-full max-w-[820px] px-5 pt-8 pb-24 md:px-10 md:pt-[34px] md:pb-20">
-        {kid ? (
+        {kid && childRow ? (
           <ProfileClient
             kid={kid}
             parents={parents}
