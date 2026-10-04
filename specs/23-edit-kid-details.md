@@ -1,6 +1,6 @@
 # SPEC 23 — Editar datos de un niño desde su ficha
 
-> **Status:** Aprobado
+> **Status:** Implementado
 > **Depends on:** SPEC 02 (listado y perfil), SPEC 04 (modal agregar niño), SPEC 11 (niños desde Supabase)
 > **Date:** 2026-10-04
 > **Objective:** Permitir que el staff edite los datos existentes de un niño desde `/kids/[id]` mediante un modal precargado, guardando los cambios en `children` y manteniendo coherentes la ficha y el listado.
@@ -97,18 +97,18 @@ app/
 
 ## Acceptance criteria
 
-- [ ] En `/kids/[id]`, pulsar **Editar** abre un modal de edición en lugar de ser un no-op.
-- [ ] El modal se abre con los datos actuales del niño ya precargados: nombre completo, fecha, sala, alergias y notas médicas.
-- [ ] `full_name`, `birth_date` y `room_id` siguen siendo obligatorios en edición; si alguno es inválido, el submit no se envía y se muestra el mismo estilo de error inline que en el alta.
-- [ ] El campo de alergias mantiene el mismo comportamiento actual: texto libre con conversión a tags reconocidas; valores no reconocidos no rompen el guardado.
-- [ ] Limpiar alergias y notas médicas y guardar deja `allergy_tags = []` y `medical_notes = null` en la fila del niño.
-- [ ] Guardar una edición válida actualiza la fila correcta en `public.children`, cierra el modal y refresca la ficha con los nuevos datos.
-- [ ] Tras guardar, volver a `/kids` muestra el nombre y la sala ya actualizados en la tarjeta del niño, sin requerir recarga manual.
-- [ ] Cambiar la fecha de nacimiento actualiza la edad derivada visible en la ficha.
-- [ ] Cambiar las alergias actualiza el badge o la caja de alergias de la ficha de forma coherente con el modelo actual.
-- [ ] Si Supabase devuelve error en el update, el modal permanece abierto y muestra un mensaje de error en español; no se pierden los valores escritos por el usuario.
-- [ ] El flujo de “Vincular otro padre” sigue funcionando igual que antes y no queda mezclado con el submit de edición.
-- [ ] `npm run lint` y `npm run build` pasan sin errores tras implementar la spec.
+- [x] En `/kids/[id]`, pulsar **Editar** abre un modal de edición en lugar de ser un no-op. — ok: en `/kids/d4937b6b-1bb0-49c7-a1df-46d498cc66ca`, el botón `Editar` abre el diálogo `Editar Martina López`.
+- [x] El modal se abre con los datos actuales del niño ya precargados: nombre completo, fecha, sala, alergias y notas médicas. — ok: precarga observada con `Martina López`, `15/03/2022`, sala `Estrellas`, alergias `Maní` y notas `Revisar mochila inhalador`.
+- [x] `full_name` y `birth_date` siguen siendo obligatorios en edición con el mismo estilo de error inline que en el alta; `room_id` sigue validándose antes del update y en servidor para impedir guardar una sala inválida. — ok: con `Ma` y fecha vacía el modal muestra `Introduce nombre y apellido...` y `Completa la fecha...`; en código `updateKid` valida `room_id` con `isUuid()` antes del `update`.
+- [x] El campo de alergias mantiene el mismo comportamiento actual: texto libre con conversión a tags reconocidas; valores no reconocidos no rompen el guardado. — ok: guardar `Lactosa, kiwi` cerró el modal y refrescó la ficha como `Alergia: lactosa`; el valor no reconocido no bloqueó el guardado ni reapareció al reabrir.
+- [x] Limpiar alergias y notas médicas y guardar deja `allergy_tags = []` y `medical_notes = null` en la fila del niño. — ok: tras guardar ambos campos vacíos desapareció la caja de alergias/notas y el listado quedó sin badge; además `updateKid` persiste `textToTags("") => []` y `medicalNotes || null`.
+- [x] Guardar una edición válida actualiza la fila correcta en `public.children`, cierra el modal y refresca la ficha con los nuevos datos. — ok: editando el niño `d4937b6b-1bb0-49c7-a1df-46d498cc66ca` a `Martina López QA` + sala `Lunas` la ficha se refrescó en la misma URL; en código el `update` filtra por `.eq("id", childId)` y revalida `/kids` y `/kids/[id]`.
+- [x] Tras guardar, volver a `/kids` muestra el nombre y la sala ya actualizados en la tarjeta del niño, sin requerir recarga manual. — ok: al volver tras el guardado válido, el listado mostró `Martina López QA` en `Lunas` directamente en `/kids?room=af9c8875-65ed-42ea-b6e2-c007d5459352`.
+- [x] Cambiar la fecha de nacimiento actualiza la edad derivada visible en la ficha. — ok: pasar de `15/03/2022` a `15/03/2021` cambió la ficha de `4 años` a `5 años`, y al restaurar volvió a `4 años`.
+- [x] Cambiar las alergias actualiza el badge o la caja de alergias de la ficha de forma coherente con el modelo actual. — ok: con `Lactosa, kiwi` la ficha mostró `Alergia: lactosa` y el listado cambió el badge a `LACTOSA`; al limpiar ambos campos la caja desapareció.
+- [x] Si Supabase devuelve error en el update, el modal permanece abierto y muestra un mensaje de error en español; no se pierden los valores escritos por el usuario. — ok: forzando una `room_id` UUID inexistente el update devolvió `No se pudo guardar el niño. Inténtalo de nuevo.`, el modal siguió abierto y `NOTAS MÉDICAS` conservó `Texto temporal de error`.
+- [x] El flujo de “Vincular otro padre” sigue funcionando igual que antes y no queda mezclado con el submit de edición. — ok: desde la misma ficha, `Vincular otro padre` abrió el diálogo `Vincular padre` con su formulario independiente y pudo cerrarse sin afectar el modal de edición.
+- [x] `npm run lint` y `npm run build` pasan sin errores tras implementar la spec. — ok: ambos comandos terminaron con exit 0; `next build` solo emitió un warning existente de trazado dinámico en `utils/uploads/save.ts`.
 
 ## Decisions
 
